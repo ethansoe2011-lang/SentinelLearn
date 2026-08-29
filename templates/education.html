@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Education Hub | SentinelLearn</title>
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            padding: 50px; 
+            background-color: #000000; 
+            color: #eaeaea;
+            text-align: center;
+            margin: 0;
+        }
+        .card { 
+            background: #0a0a0a; 
+            padding: 40px; 
+            border-radius: 8px; 
+            border: 1px solid #222;
+            max-width: 800px; 
+            margin: 0 auto; 
+            text-align: left;
+        }
+        h1 { color: #ffffff; text-align: center; margin-top: 0; font-weight: 600; }
+        p.subtitle { text-align: center; font-size: 1.05rem; color: #888; margin-bottom: 30px; }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: #111;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { outline: none; border-color: #666; }
+        
+        .btn {
+            padding: 12px 24px;
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+            align-self: flex-end;
+        }
+        .btn:hover:not(:disabled) { background-color: #cccccc; }
+        .btn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
+
+        .response-area {
+            margin-top: 25px;
+            padding: 20px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: none;
+            line-height: 1.6;
+        }
+        .response-area h3 { margin-top: 0; color: #fff; font-size: 1.1rem; margin-bottom: 10px; }
+
+        .nav-links { 
+            display: flex; 
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px; 
+        }
+        .nav-links a {
+            color: #888; 
+            text-decoration: none; 
+            font-weight: 400; 
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Sentinel EduBot</h1>
+        <p class="subtitle">Ask any question about cybersecurity, malware, or safe browsing habits.</p>
+        
+        <div class="chat-container">
+            <textarea id="questionInput" placeholder="E.g., What is ransomware and how do I prevent it?"></textarea>
+            <button id="askBtn" class="btn">Ask Sentinel</button>
+        </div>
+
+        <div id="responseArea" class="response-area">
+            <h3>AI Response:</h3>
+            <div id="responseContent" style="color: #ccc;"></div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/dashboard">&larr; Dashboard</a>
+            <a href="/quiz">Try a Quiz &rarr;</a>
+        </div>
+    </div>
+
+    <script>
+        const askBtn = document.getElementById('askBtn');
+        const questionInput = document.getElementById('questionInput');
+        const responseArea = document.getElementById('responseArea');
+        const responseContent = document.getElementById('responseContent');
+
+        askBtn.addEventListener('click', async () => {
+            const question = questionInput.value.trim();
+            if (!question) return;
+            
+            askBtn.disabled = true;
+            askBtn.innerText = 'Thinking...';
+            responseArea.style.display = 'block';
+            responseContent.innerHTML = '<span style="color: #888;">Synthesizing answer...</span>';
+
+            try {
+                const res = await fetch('/api/ask-education', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+                
+                const json = await res.json();
+                
+                if (json.status === 'success') {
+                    // Replace newlines with <br> for HTML rendering
+                    responseContent.innerHTML = json.answer.replace(/\n/g, '<br>');
+                } else {
+                    responseContent.innerHTML = `<span style="color: #fecaca;">Error: ${json.message}</span>`;
+                }
+            } catch (e) {
+                responseContent.innerHTML = '<span style="color: #fecaca;">Connection error communicating with Sentinel AI.</span>';
+            } finally {
+                askBtn.disabled = false;
+                askBtn.innerText = 'Ask Sentinel';
+            }
+        });
+    </script>
+</body>
+</html>

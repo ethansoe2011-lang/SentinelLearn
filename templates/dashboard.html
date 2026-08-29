@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Dashboard</title>
+    <style>
+        /* Full viewport body reset */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            color: #eaeaea;
+            box-sizing: border-box;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #222;
+            margin-bottom: 20px;
+        }
+        header h1 { margin: 0; font-size: 1.5rem; color: #fff; font-weight: 600; letter-spacing: 0.5px; }
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #fff; }
+
+        /* Full Width/Height Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two equal columns */
+            gap: 20px;
+            flex: 1; /* Takes up all remaining vertical space */
+            min-height: 0; 
+        }
+
+        /* Dark Panels */
+        .panel {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Keeps scrollbars inside child elements */
+        }
+        .panel h2 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 500;
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; color: #888; font-size: 0.9rem; }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background-color: #111;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus { outline: none; border-color: #666; }
+        
+        .btn {
+            padding: 12px 24px;
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: #cccccc; }
+        
+        /* Log Area Container */
+        .log-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .log-entry {
+            background: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .log-analysis { line-height: 1.5; color: #ccc; font-size: 0.95rem; }
+
+        /* Status Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .badge.safe { background: #064e3b; color: #d1fae5; border: 1px solid #047857; }
+        .badge.threat { background: #7f1d1d; color: #fecaca; border: 1px solid #b91c1c; }
+
+        /* Sleek Dark Scrollbars */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🛡️ Sentinel Security Dashboard</h1>
+        <div class="nav-links">
+            <a href="/password-manager">Password Vault</a>
+            <a href="/education">Education Hub</a>
+            <a href="/quiz">Quizzes</a>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- LEFT COLUMN: Manual Scanners -->
+        <div class="panel">
+            <h2>Manual Activity & URL Scanner</h2>
+            <div class="form-group">
+                <label>Activity Type</label>
+                <select id="activityType">
+                    <option value="url">URL Check</option>
+                    <option value="file">File Download</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Target Value</label>
+                <input type="text" id="activityValue" placeholder="e.g., [http://suspicious-link.com](http://suspicious-link.com)">
+            </div>
+            <button class="btn" id="scanBtn">Scan Activity</button>
+
+            <div id="scanResult" style="margin-top: 20px; padding: 15px; border-radius: 4px; display: none; background: #111; border: 1px solid #333;"></div>
+        </div>
+
+        <!-- RIGHT COLUMN: Real-Time Telemetry Logs -->
+        <div class="panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="border: none; padding: 0; margin: 0;">Live System Logs</h2>
+                <button id="refreshLogs" style="background: transparent; border: 1px solid #333; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Refresh</button>
+            </div>
+            
+            <div class="log-container" id="logContainer">
+                <div style="color: #666; text-align: center; margin-top: 40px;">Fetching logs...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle Manual Scan Submission
+        document.getElementById('scanBtn').addEventListener('click', async () => {
+            const type = document.getElementById('activityType').value;
+            const value = document.getElementById('activityValue').value;
+            const resDiv = document.getElementById('scanResult');
+            const btn = document.getElementById('scanBtn');
+
+            if (!value) return;
+
+            btn.innerText = "Scanning...";
+            btn.disabled = true;
+
+            try {
+                const req = await fetch('/api/activity-check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, value, source: "manual_scanner" })
+                });
+                const res = await req.json();
+                
+                resDiv.style.display = 'block';
+                if (res.status === 'success') {
+                    const color = res.verdict === 'SAFE' ? '#d1fae5' : '#fecaca';
+                    resDiv.innerHTML = `<strong style="color: ${color}">${res.verdict}</strong><br><br>${res.analysis}`;
+                    fetchLogs(); // Refresh logs to show the new entry
+                } else {
+                    resDiv.innerHTML = `Error: ${res.message}`;
+                }
+            } catch (e) {
+                resDiv.style.display = 'block';
+                resDiv.innerHTML = `Connection Error.`;
+            } finally {
+                btn.innerText = "Scan Activity";
+                btn.disabled = false;
+            }
+        });
+
+        // Fetch and Render Logs
+        async function fetchLogs() {
+            const container = document.getElementById('logContainer');
+            try {
+                const req = await fetch('/api/logs?limit=20');
+                const res = await req.json();
+                
+                if (res.status === 'success') {
+                    container.innerHTML = '';
+                    if (res.logs.length === 0) {
+                        container.innerHTML = '<div style="color: #666; text-align: center; margin-top: 40px;">No logs recorded yet.</div>';
+                        return;
+                    }
+                    
+                    res.logs.forEach(log => {
+                        const date = new Date(log.timestamp).toLocaleTimeString();
+                        const badgeClass = log.verdict === 'SAFE' ? 'safe' : 'threat';
+                        
+                        container.innerHTML += `
+                            <div class="log-entry">
+                                <div class="log-header">
+                                    <span>[${date}] ${log.source}</span>
+                                    <span class="badge ${badgeClass}">${log.verdict}</span>
+                                </div>
+                                <div class="log-analysis">${log.analysis || log.input}</div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (e) {
+                container.innerHTML = '<div style="color: #7f1d1d; text-align: center; margin-top: 40px;">Error fetching logs.</div>';
+            }
+        }
+
+        // Initialize and setup polling
+        document.getElementById('refreshLogs').addEventListener('click', fetchLogs);
+        fetchLogs();
+        setInterval(fetchLogs, 15000); // Auto-refresh logs every 15s
+    </script>
+</body>
+</html>
