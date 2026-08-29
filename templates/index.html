@@ -7,9 +7,9 @@
     <style>
         :root {
             --bg-gradient: linear-gradient(to right, #000000, #2b2b2b);
-            --glow-primary: #4facfe;
-            --glow-secondary: #9b59b6;
-            --glow-green: #2ecc71;
+            --neon-primary: #00f3ff;
+            --neon-secondary: #bc13fe;
+            --neon-green: #39ff14;
             --text-main: #ffffff;
             --text-muted: #aaaaaa;
             --panel-bg: rgba(20, 20, 20, 0.7);
@@ -102,26 +102,51 @@
         .btn:hover::before { opacity: 1; }
 
         .btn-primary { 
-            border-color: var(--glow-primary); 
-            box-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
-            color: var(--glow-primary);
+            border-color: var(--neon-primary); 
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+            color: var(--neon-primary);
         }
         .btn-primary:hover {
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.6), inset 0 0 10px rgba(79, 172, 254, 0.2);
-            text-shadow: 0 0 8px var(--glow-primary);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6), inset 0 0 10px rgba(0, 243, 255, 0.2);
+            text-shadow: 0 0 8px var(--neon-primary);
         }
 
         .btn-success { 
-            border-color: var(--glow-green); 
-            box-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
-            color: var(--glow-green);
+            border-color: var(--neon-green); 
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+            color: var(--neon-green);
         }
         .btn-success:hover {
-            box-shadow: 0 0 20px rgba(46, 204, 113, 0.6), inset 0 0 10px rgba(46, 204, 113, 0.2);
-            text-shadow: 0 0 8px var(--glow-green);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.6), inset 0 0 10px rgba(57, 255, 20, 0.2);
+            text-shadow: 0 0 8px var(--neon-green);
         }
 
         .btn-warning { 
-            border-color: var(--glow-secondary); 
-            box-shadow: 0 0 10px rgba(155, 89, 182, 0.2);
-            color: var
+            border-color: var(--neon-secondary); 
+            box-shadow: 0 0 10px rgba(188, 19, 254, 0.2);
+            color: var(--neon-secondary);
+        }
+        .btn-warning:hover {
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.6), inset 0 0 10px rgba(188, 19, 254, 0.2);
+            text-shadow: 0 0 8px var(--neon-secondary);
+        }
+        
+        .btn-default:hover {
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to SentinelLearn</h1>
+        <p>An AI-Driven Cybersecurity & Threat Simulation Platform designed to bridge the gap between theoretical cybersecurity education and practical threat recognition.</p>
+        <div class="button-group">
+            <a href="/dashboard" class="btn btn-primary">Launch Dashboard</a>
+            <a href="/password-manager" class="btn btn-success">Password Manager</a>
+            <a href="/education" class="btn btn-default">Threat Education Hub</a>
+            <a href="/quiz" class="btn btn-warning">Flashcards & Quizzes</a>
+        </div>
+    </div>
+</body>
+</html>
