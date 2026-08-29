@@ -7,8 +7,8 @@
     <style>
         :root {
             --bg-gradient: linear-gradient(to right, #000000, #2b2b2b);
-            --neon-warning: #bc13fe;
-            --neon-primary: #00f3ff;
+            --glow-warning: #9b59b6;
+            --glow-primary: #4facfe;
             --panel-bg: rgba(15, 15, 15, 0.75);
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
@@ -38,7 +38,7 @@
             z-index: 10;
         }
         header h1 { margin: 0; font-size: 1.4rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 10px;}
-        header h1::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--neon-warning); box-shadow: 0 0 10px var(--neon-warning); }
+        header h1::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--glow-warning); box-shadow: 0 0 10px var(--glow-warning); }
         .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 25px; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; }
         .nav-links a:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
 
@@ -70,24 +70,24 @@
             transition: all 0.3s;
             outline: none;
         }
-        .input-group input:focus { border-color: var(--neon-warning); box-shadow: 0 0 15px rgba(188, 19, 254, 0.2); }
+        .input-group input:focus { border-color: var(--glow-warning); box-shadow: 0 0 15px rgba(155, 89, 182, 0.2); }
         
         .btn {
             padding: 16px 30px;
             background-color: transparent;
-            color: var(--neon-warning);
-            border: 1px solid var(--neon-warning);
+            color: var(--glow-warning);
+            border: 1px solid var(--glow-warning);
             border-radius: 12px;
             cursor: pointer;
             font-size: 1.05rem;
             font-weight: 600;
             transition: all 0.3s;
-            box-shadow: 0 0 10px rgba(188, 19, 254, 0.1);
+            box-shadow: 0 0 10px rgba(155, 89, 182, 0.1);
         }
         .btn:hover:not(:disabled) { 
-            background-color: rgba(188, 19, 254, 0.1);
-            box-shadow: 0 0 20px rgba(188, 19, 254, 0.4);
-            text-shadow: 0 0 8px var(--neon-warning);
+            background-color: rgba(155, 89, 182, 0.1);
+            box-shadow: 0 0 20px rgba(155, 89, 182, 0.4);
+            text-shadow: 0 0 8px var(--glow-warning);
         }
         .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; }
 
@@ -108,9 +108,9 @@
             background: rgba(0,0,0,0.5); box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             transition: all 0.3s;
         }
-        .flashcard:hover .flashcard-front, .flashcard:hover .flashcard-back { border-color: rgba(188, 19, 254, 0.5); box-shadow: 0 0 20px rgba(188, 19, 254, 0.2); }
+        .flashcard:hover .flashcard-front, .flashcard:hover .flashcard-back { border-color: rgba(155, 89, 182, 0.5); box-shadow: 0 0 20px rgba(155, 89, 182, 0.2); }
         
-        .flashcard-front h3 { margin: 0; font-size: 1.25rem; font-weight: 500; color: var(--neon-primary); }
+        .flashcard-front h3 { margin: 0; font-size: 1.25rem; font-weight: 500; color: var(--glow-primary); }
         .flashcard-back { transform: rotateY(180deg); background: rgba(15,15,15,0.9); }
         .flashcard-back p { margin: 0; font-size: 1.05rem; line-height: 1.6; color: #eee; }
 
@@ -122,7 +122,7 @@
             cursor: pointer; border-radius: 12px; border: 1px solid var(--border-light);
             font-size: 1.1rem; transition: all 0.2s;
         }
-        .quiz-option:hover { border-color: var(--neon-warning); background: rgba(188, 19, 254, 0.05); transform: translateX(5px); }
+        .quiz-option:hover { border-color: var(--glow-warning); background: rgba(155, 89, 182, 0.05); transform: translateX(5px); }
         
         /* The JS sets inline styles, but we ensure transitions are smooth */
         #quizFeedback {
@@ -150,7 +150,7 @@
                 <button id="generateBtn" class="btn">Generate Study Set</button>
             </div>
 
-            <div id="loadingIndicator" style="display: none; color: var(--neon-warning); text-align: center; margin: 30px 0; font-size: 1.1rem; text-shadow: 0 0 8px rgba(188,19,254,0.4);">
+            <div id="loadingIndicator" style="display: none; color: var(--glow-warning); text-align: center; margin: 30px 0; font-size: 1.1rem; text-shadow: 0 0 8px rgba(155, 89, 182, 0.4);">
                 Sentinel AI is curating your study materials...
             </div>
 
@@ -245,30 +245,30 @@
             document.querySelectorAll('.quiz-option').forEach(el => {
                 el.style.pointerEvents = 'none';
                 if (el.innerText.trim() === currentQuizAnswer.trim()) {
-                    el.style.backgroundColor = 'rgba(57, 255, 20, 0.1)';
-                    el.style.borderColor = '#39ff14';
-                    el.style.boxShadow = '0 0 10px rgba(57,255,20,0.3)';
+                    el.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
+                    el.style.borderColor = '#2ecc71';
+                    el.style.boxShadow = '0 0 10px rgba(46, 204, 113, 0.3)';
                 }
             });
             
             if (selected.trim() === currentQuizAnswer.trim()) {
-                element.style.backgroundColor = 'rgba(57, 255, 20, 0.2)';
-                element.style.borderColor = '#39ff14';
-                element.style.boxShadow = '0 0 15px rgba(57,255,20,0.4)';
-                quizFeedback.style.backgroundColor = 'rgba(57, 255, 20, 0.1)';
-                quizFeedback.style.border = '1px solid #39ff14';
+                element.style.backgroundColor = 'rgba(46, 204, 113, 0.2)';
+                element.style.borderColor = '#2ecc71';
+                element.style.boxShadow = '0 0 15px rgba(46, 204, 113, 0.4)';
+                quizFeedback.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
+                quizFeedback.style.border = '1px solid #2ecc71';
                 quizFeedback.style.color = '#fff';
-                quizFeedback.style.boxShadow = '0 0 15px rgba(57, 255, 20, 0.2)';
-                quizFeedback.innerHTML = `<strong style="color:#39ff14; text-shadow:0 0 8px #39ff14;">Correct!</strong> <br><br>${currentQuizExplanation}`;
+                quizFeedback.style.boxShadow = '0 0 15px rgba(46, 204, 113, 0.2)';
+                quizFeedback.innerHTML = `<strong style="color:#2ecc71; text-shadow:0 0 8px #2ecc71;">Correct!</strong> <br><br>${currentQuizExplanation}`;
             } else {
-                element.style.backgroundColor = 'rgba(255, 7, 58, 0.2)';
-                element.style.borderColor = '#ff073a';
-                element.style.boxShadow = '0 0 15px rgba(255,7,58,0.4)';
-                quizFeedback.style.backgroundColor = 'rgba(255, 7, 58, 0.1)';
-                quizFeedback.style.border = '1px solid #ff073a';
+                element.style.backgroundColor = 'rgba(231, 76, 60, 0.2)';
+                element.style.borderColor = '#e74c3c';
+                element.style.boxShadow = '0 0 15px rgba(231, 76, 60, 0.4)';
+                quizFeedback.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
+                quizFeedback.style.border = '1px solid #e74c3c';
                 quizFeedback.style.color = '#fff';
-                quizFeedback.style.boxShadow = '0 0 15px rgba(255, 7, 58, 0.2)';
-                quizFeedback.innerHTML = `<strong style="color:#ff073a; text-shadow:0 0 8px #ff073a;">Incorrect.</strong> <br><br>${currentQuizExplanation}`;
+                quizFeedback.style.boxShadow = '0 0 15px rgba(231, 76, 60, 0.2)';
+                quizFeedback.innerHTML = `<strong style="color:#e74c3c; text-shadow:0 0 8px #e74c3c;">Incorrect.</strong> <br><br>${currentQuizExplanation}`;
             }
             quizFeedback.style.display = 'block';
         }
