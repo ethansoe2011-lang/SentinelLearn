@@ -6,7 +6,7 @@
 // Results are saved to activity_log.jsonl and appear in the Dashboard log panel.
 // =============================================================================
 
-const BACKEND_URL = "http://localhost:5000/api/activity-check";
+const BACKEND_URL = "https://sentinel-learn.vercel.app/api/activity-check";
 
 // ── Trusted domain whitelist ──────────────────────────────────────────────────
 // Navigations to these domains are SKIPPED to avoid spamming the AI with noise

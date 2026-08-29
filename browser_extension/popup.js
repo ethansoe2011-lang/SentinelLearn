@@ -1,7 +1,7 @@
 // popup.js — reads session stats from chrome.storage.session
 // and checks if the Flask backend is reachable.
 
-const BACKEND_PING = "http://localhost:5000/api/logs?limit=1";
+const BACKEND_PING = "https://sentinel-learn.vercel.app/api/logs?limit=1";
 
 async function init() {
   // Load session stats from background service worker
