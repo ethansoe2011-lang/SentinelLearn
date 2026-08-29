@@ -5,107 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Education Hub | SentinelLearn</title>
     <style>
+        :root {
+            --bg-gradient: linear-gradient(to right, #000000, #2b2b2b);
+            --neon-primary: #00f3ff;
+            --panel-bg: rgba(15, 15, 15, 0.75);
+            --border-light: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #888888;
+        }
+
         body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            padding: 50px; 
-            background-color: #000000; 
-            color: #eaeaea;
-            text-align: center;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             margin: 0;
-        }
-        .card { 
-            background: #0a0a0a; 
-            padding: 40px; 
-            border-radius: 8px; 
-            border: 1px solid #222;
-            max-width: 800px; 
-            margin: 0 auto; 
-            text-align: left;
-        }
-        h1 { color: #ffffff; text-align: center; margin-top: 0; font-weight: 600; }
-        p.subtitle { text-align: center; font-size: 1.05rem; color: #888; margin-bottom: 30px; }
-        
-        .chat-container {
+            padding: 0;
+            background: var(--bg-gradient); 
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 15px;
         }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        header h1 { margin: 0; font-size: 1.4rem; color: #fff; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px;}
+        header h1::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--neon-primary); box-shadow: 0 0 10px var(--neon-primary); }
+        .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 25px; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; }
+        .nav-links a:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .card { 
+            background: var(--panel-bg); 
+            padding: 50px; 
+            border-radius: 20px; 
+            border: 1px solid var(--border-light);
+            max-width: 800px; 
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h1 { color: #fff; margin-top: 0; font-weight: 600; font-size: 2rem; text-align: center;}
+        p.subtitle { text-align: center; font-size: 1.05rem; color: var(--text-muted); margin-bottom: 40px; }
+        
+        .chat-container { display: flex; flex-direction: column; gap: 20px; }
         
         textarea {
             width: 100%;
-            padding: 15px;
-            background-color: #111;
+            padding: 20px;
+            background-color: rgba(0,0,0,0.5);
             color: #fff;
-            border: 1px solid #333;
-            border-radius: 6px;
-            font-size: 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 1.05rem;
             font-family: inherit;
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
             box-sizing: border-box;
-            transition: border-color 0.2s;
+            transition: all 0.3s;
+            outline: none;
         }
-        textarea:focus { outline: none; border-color: #666; }
+        textarea:focus { border-color: var(--neon-primary); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
         
         .btn {
-            padding: 12px 24px;
-            background-color: #ffffff;
-            color: #000000;
-            border: none;
-            border-radius: 4px;
+            padding: 14px 30px;
+            background-color: transparent;
+            color: var(--neon-primary);
+            border: 1px solid var(--neon-primary);
+            border-radius: 50px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            transition: background 0.2s;
+            transition: all 0.3s;
             align-self: flex-end;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
         }
-        .btn:hover:not(:disabled) { background-color: #cccccc; }
-        .btn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { 
+            background-color: rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+            text-shadow: 0 0 8px var(--neon-primary);
+        }
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; }
 
         .response-area {
-            margin-top: 25px;
-            padding: 20px;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 6px;
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
             display: none;
-            line-height: 1.6;
+            line-height: 1.7;
+            font-size: 1.05rem;
+            animation: fadeIn 0.4s ease-out;
         }
-        .response-area h3 { margin-top: 0; color: #fff; font-size: 1.1rem; margin-bottom: 10px; }
-
-        .nav-links { 
-            display: flex; 
-            justify-content: center;
-            gap: 30px;
-            margin-top: 40px; 
-        }
-        .nav-links a {
-            color: #888; 
-            text-decoration: none; 
-            font-weight: 400; 
-            transition: color 0.2s;
-        }
-        .nav-links a:hover { color: #fff; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .response-area h3 { margin-top: 0; color: var(--neon-primary); font-size: 1.1rem; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;}
     </style>
 </head>
 <body>
-    <div class="card">
+    <header>
         <h1>Sentinel EduBot</h1>
-        <p class="subtitle">Ask any question about cybersecurity, malware, or safe browsing habits.</p>
-        
-        <div class="chat-container">
-            <textarea id="questionInput" placeholder="E.g., What is ransomware and how do I prevent it?"></textarea>
-            <button id="askBtn" class="btn">Ask Sentinel</button>
-        </div>
-
-        <div id="responseArea" class="response-area">
-            <h3>AI Response:</h3>
-            <div id="responseContent" style="color: #ccc;"></div>
-        </div>
-
         <div class="nav-links">
-            <a href="/dashboard">&larr; Dashboard</a>
-            <a href="/quiz">Try a Quiz &rarr;</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/password-manager">Password Vault</a>
+            <a href="/quiz">Quizzes</a>
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <div class="card">
+            <h1>Ask Sentinel AI</h1>
+            <p class="subtitle">Ask any question about cybersecurity, malware, or safe browsing habits.</p>
+            
+            <div class="chat-container">
+                <textarea id="questionInput" placeholder="E.g., What is ransomware and how do I prevent it?"></textarea>
+                <button id="askBtn" class="btn">Ask Sentinel</button>
+            </div>
+
+            <div id="responseArea" class="response-area">
+                <h3>AI Response</h3>
+                <div id="responseContent" style="color: #ddd;"></div>
+            </div>
         </div>
     </div>
 
@@ -122,7 +158,7 @@
             askBtn.disabled = true;
             askBtn.innerText = 'Thinking...';
             responseArea.style.display = 'block';
-            responseContent.innerHTML = '<span style="color: #888;">Synthesizing answer...</span>';
+            responseContent.innerHTML = '<span style="color: #888; font-style: italic;">Synthesizing answer...</span>';
 
             try {
                 const res = await fetch('/api/ask-education', {
@@ -134,13 +170,12 @@
                 const json = await res.json();
                 
                 if (json.status === 'success') {
-                    // Replace newlines with <br> for HTML rendering
                     responseContent.innerHTML = json.answer.replace(/\n/g, '<br>');
                 } else {
-                    responseContent.innerHTML = `<span style="color: #fecaca;">Error: ${json.message}</span>`;
+                    responseContent.innerHTML = `<span style="color: #ff073a;">Error: ${json.message}</span>`;
                 }
             } catch (e) {
-                responseContent.innerHTML = '<span style="color: #fecaca;">Connection error communicating with Sentinel AI.</span>';
+                responseContent.innerHTML = '<span style="color: #ff073a;">Connection error communicating with Sentinel AI.</span>';
             } finally {
                 askBtn.disabled = false;
                 askBtn.innerText = 'Ask Sentinel';

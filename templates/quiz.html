@@ -5,189 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Flashcards & Quizzes | SentinelLearn</title>
     <style>
+        :root {
+            --bg-gradient: linear-gradient(to right, #000000, #2b2b2b);
+            --neon-warning: #bc13fe;
+            --neon-primary: #00f3ff;
+            --panel-bg: rgba(15, 15, 15, 0.75);
+            --border-light: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #888888;
+        }
+
         body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            padding: 50px; 
-            background-color: #000000; 
-            color: #eaeaea;
-            text-align: center;
-        }
-        .card { 
-            background: #0a0a0a; 
-            padding: 40px; 
-            border-radius: 8px; 
-            border: 1px solid #222;
-            max-width: 900px; 
-            margin: 0 auto; 
-            text-align: left;
-        }
-        h1 { color: #ffffff; text-align: center; margin-bottom: 10px; font-weight: 600; }
-        p.subtitle { text-align: center; font-size: 1.1rem; color: #888; margin-bottom: 30px; }
-        
-        .input-group {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            margin: 0;
+            padding: 0;
+            background: var(--bg-gradient); 
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            flex-direction: column;
         }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        header h1 { margin: 0; font-size: 1.4rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 10px;}
+        header h1::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--neon-warning); box-shadow: 0 0 10px var(--neon-warning); }
+        .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 25px; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; }
+        .nav-links a:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+
+        .content-wrapper { padding: 40px; display: flex; justify-content: center; flex: 1; }
+
+        .card { 
+            background: var(--panel-bg); 
+            padding: 40px; 
+            border-radius: 20px; 
+            border: 1px solid var(--border-light);
+            max-width: 900px; 
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+        .card h1 { margin-top: 0; font-weight: 600; font-size: 2rem; text-align: center;}
+        p.subtitle { text-align: center; font-size: 1.05rem; color: var(--text-muted); margin-bottom: 40px; }
+        
+        .input-group { display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; }
         .input-group input {
             flex: 1;
-            padding: 12px;
-            background-color: #000;
+            padding: 16px 20px;
+            background-color: rgba(0,0,0,0.4);
             color: #fff;
-            border: 1px solid #333;
-            border-radius: 4px;
-            font-size: 1rem;
-            min-width: 250px;
-            transition: border-color 0.2s;
-        }
-        .input-group input:focus {
-            outline: none;
-            border-color: #666;
-        }
-        .btn {
-            padding: 12px 24px;
-            background-color: #ffffff;
-            color: #000000;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background 0.2s, opacity 0.2s;
-        }
-        .btn:hover:not(:disabled) { background-color: #cccccc; }
-        .btn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
-
-        /* Flashcard Styles */
-        .flashcards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .flashcard {
-            perspective: 1000px;
-            height: 220px;
-            width: 100%;
-        }
-        .flashcard-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }
-        .flashcard.flipped .flashcard-inner {
-            transform: rotateY(180deg);
-        }
-        .flashcard-front, .flashcard-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            border-radius: 8px;
-            border: 1px solid #333;
-        }
-        .flashcard-front {
-            background-color: #111;
-            color: #eaeaea;
-        }
-        .flashcard-front h3 { margin: 0; font-size: 1.2rem; font-weight: 500; }
-        .flashcard-back {
-            background-color: #222;
-            color: #ffffff;
-            transform: rotateY(180deg);
-            border-color: #555;
-        }
-        .flashcard-back p { margin: 0; font-size: 1rem; line-height: 1.5; }
-
-        /* Quiz Styles */
-        .quiz-section {
-            margin-top: 50px;
-            background: #050505;
-            padding: 25px;
-            border-radius: 8px;
-            border: 1px solid #222;
-        }
-        .quiz-section h2 { color: #fff; margin-top: 0; font-weight: 500; }
-        .quiz-option {
-            display: block;
-            margin: 12px 0;
-            padding: 15px;
-            background: #111;
-            cursor: pointer;
-            border-radius: 4px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
             font-size: 1.05rem;
-            transition: all 0.2s;
+            min-width: 250px;
+            transition: all 0.3s;
+            outline: none;
         }
-        .quiz-option:hover { border-color: #666; background: #1a1a1a; }
-        .quiz-option.correct { background: #064e3b; border-color: #047857; color: #d1fae5; }
-        .quiz-option.incorrect { background: #7f1d1d; border-color: #b91c1c; color: #fecaca; }
+        .input-group input:focus { border-color: var(--neon-warning); box-shadow: 0 0 15px rgba(188, 19, 254, 0.2); }
         
-        #quizFeedback {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 4px;
-            font-weight: 400;
-            display: none;
-            line-height: 1.6;
+        .btn {
+            padding: 16px 30px;
+            background-color: transparent;
+            color: var(--neon-warning);
+            border: 1px solid var(--neon-warning);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px rgba(188, 19, 254, 0.1);
         }
+        .btn:hover:not(:disabled) { 
+            background-color: rgba(188, 19, 254, 0.1);
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.4);
+            text-shadow: 0 0 8px var(--neon-warning);
+        }
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; }
 
-        .back-link { 
-            display: block; 
-            text-align: center;
-            margin-top: 40px; 
-            color: #888; 
-            text-decoration: none; 
-            font-weight: 400; 
-            transition: color 0.2s;
+        .flashcards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin-top: 25px; }
+        
+        .flashcard { perspective: 1200px; height: 240px; width: 100%; cursor: pointer; }
+        .flashcard-inner {
+            position: relative; width: 100%; height: 100%; text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
         }
-        .back-link:hover { color: #fff; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center; padding: 25px; box-sizing: border-box;
+            border-radius: 16px; border: 1px solid var(--border-light);
+            background: rgba(0,0,0,0.5); box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        .flashcard:hover .flashcard-front, .flashcard:hover .flashcard-back { border-color: rgba(188, 19, 254, 0.5); box-shadow: 0 0 20px rgba(188, 19, 254, 0.2); }
+        
+        .flashcard-front h3 { margin: 0; font-size: 1.25rem; font-weight: 500; color: var(--neon-primary); }
+        .flashcard-back { transform: rotateY(180deg); background: rgba(15,15,15,0.9); }
+        .flashcard-back p { margin: 0; font-size: 1.05rem; line-height: 1.6; color: #eee; }
+
+        .quiz-section { margin-top: 60px; background: rgba(0,0,0,0.3); padding: 35px; border-radius: 20px; border: 1px solid var(--border-light); }
+        .quiz-section h2 { color: #fff; margin-top: 0; font-weight: 600; font-size: 1.6rem; margin-bottom: 25px; border-bottom: 1px solid var(--border-light); padding-bottom: 15px;}
+        
+        .quiz-option {
+            display: block; margin: 15px 0; padding: 18px 20px; background: rgba(20,20,20,0.8);
+            cursor: pointer; border-radius: 12px; border: 1px solid var(--border-light);
+            font-size: 1.1rem; transition: all 0.2s;
+        }
+        .quiz-option:hover { border-color: var(--neon-warning); background: rgba(188, 19, 254, 0.05); transform: translateX(5px); }
+        
+        /* The JS sets inline styles, but we ensure transitions are smooth */
+        #quizFeedback {
+            margin-top: 25px; padding: 20px; border-radius: 12px; font-weight: 500; display: none; line-height: 1.7; font-size: 1.05rem; transition: all 0.3s;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Interactive Knowledge Check</h1>
-        <p class="subtitle">Enter a cybersecurity topic below. Sentinel AI will dynamically construct a custom study set and a scenario-based quiz to test your comprehension.</p>
-        
-        <div class="input-group">
-            <input type="text" id="topicInput" placeholder="e.g., Ransomware, Phishing, Passwords, Public Wi-Fi" autocomplete="off">
-            <button id="generateBtn" class="btn">Generate Study Set</button>
+    <header>
+        <h1>Knowledge Check</h1>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/password-manager">Password Vault</a>
+            <a href="/education">Education Hub</a>
         </div>
+    </header>
 
-        <div id="loadingIndicator" style="display: none; color: #888; text-align: center; margin: 30px 0; font-size: 1.1rem;">
-            Sentinel AI is curating your study materials...
-        </div>
-
-        <div id="studyContent" style="display: none;">
-            <h2 style="color: #fff; margin-bottom: 5px; font-weight: 500;">Dynamic Flashcards</h2>
-            <p style="font-size: 0.95rem; color: #666; margin-top: 0;">Click on a card to flip it and reveal the answer.</p>
+    <div class="content-wrapper">
+        <div class="card">
+            <h1>Dynamic Study Sets</h1>
+            <p class="subtitle">Enter a cybersecurity topic below. Sentinel AI will dynamically construct a custom study set and a scenario-based quiz to test your comprehension.</p>
             
-            <div class="flashcards-grid" id="flashcardsContainer">
-                <!-- Flashcards injected here via JS -->
+            <div class="input-group">
+                <input type="text" id="topicInput" placeholder="e.g., Ransomware, Phishing, Passwords, Public Wi-Fi" autocomplete="off">
+                <button id="generateBtn" class="btn">Generate Study Set</button>
             </div>
 
-            <div class="quiz-section">
-                <h2>Scenario Quiz</h2>
-                <div id="quizContainer">
-                    <!-- Quiz injected here via JS -->
+            <div id="loadingIndicator" style="display: none; color: var(--neon-warning); text-align: center; margin: 30px 0; font-size: 1.1rem; text-shadow: 0 0 8px rgba(188,19,254,0.4);">
+                Sentinel AI is curating your study materials...
+            </div>
+
+            <div id="studyContent" style="display: none;">
+                <h2 style="color: #fff; margin-bottom: 10px; font-weight: 600; font-size: 1.5rem;">Interactive Flashcards</h2>
+                <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0;">Click on a card to flip it and reveal the answer.</p>
+                
+                <div class="flashcards-grid" id="flashcardsContainer"></div>
+
+                <div class="quiz-section">
+                    <h2>Scenario Quiz</h2>
+                    <div id="quizContainer"></div>
+                    <div id="quizFeedback"></div>
                 </div>
-                <div id="quizFeedback"></div>
             </div>
         </div>
-
-        <a href="/education" class="back-link">&larr; Return to Education Hub</a>
-        <a href="/dashboard" class="back-link" style="margin-top: 15px;">Launch the Sentinel Dashboard &rarr;</a>
     </div>
 
     <script>
@@ -205,7 +184,6 @@
         generateBtn.addEventListener('click', async () => {
             const topic = topicInput.value.trim() || 'General Cybersecurity';
             
-            // UI Reset
             studyContent.style.display = 'none';
             loadingIndicator.style.display = 'block';
             generateBtn.disabled = true;
@@ -255,9 +233,8 @@
             currentQuizAnswer = quiz.answer;
             currentQuizExplanation = quiz.explanation;
             
-            let html = `<h3 style="margin-top: 0; line-height: 1.4; color: #eaeaea;">${quiz.question}</h3>`;
+            let html = `<h3 style="margin-top: 0; margin-bottom: 20px; line-height: 1.5; color: #eaeaea; font-weight: 500; font-size: 1.2rem;">${quiz.question}</h3>`;
             quiz.options.forEach(opt => {
-                // Escape quotes for inline onclick handler
                 const safeOpt = opt.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 html += `<div class="quiz-option" onclick="checkAnswer(this, '${safeOpt}')">${opt}</div>`;
             });
@@ -265,27 +242,33 @@
         }
 
         window.checkAnswer = function(element, selected) {
-            // Disable all options after selection
             document.querySelectorAll('.quiz-option').forEach(el => {
                 el.style.pointerEvents = 'none';
-                // Highlight the correct answer automatically
                 if (el.innerText.trim() === currentQuizAnswer.trim()) {
-                    el.classList.add('correct');
+                    el.style.backgroundColor = 'rgba(57, 255, 20, 0.1)';
+                    el.style.borderColor = '#39ff14';
+                    el.style.boxShadow = '0 0 10px rgba(57,255,20,0.3)';
                 }
             });
             
             if (selected.trim() === currentQuizAnswer.trim()) {
-                element.classList.add('correct');
-                quizFeedback.style.backgroundColor = '#064e3b';
-                quizFeedback.style.border = '1px solid #047857';
-                quizFeedback.style.color = '#d1fae5';
-                quizFeedback.innerHTML = `<strong>Correct!</strong> <br><br>${currentQuizExplanation}`;
+                element.style.backgroundColor = 'rgba(57, 255, 20, 0.2)';
+                element.style.borderColor = '#39ff14';
+                element.style.boxShadow = '0 0 15px rgba(57,255,20,0.4)';
+                quizFeedback.style.backgroundColor = 'rgba(57, 255, 20, 0.1)';
+                quizFeedback.style.border = '1px solid #39ff14';
+                quizFeedback.style.color = '#fff';
+                quizFeedback.style.boxShadow = '0 0 15px rgba(57, 255, 20, 0.2)';
+                quizFeedback.innerHTML = `<strong style="color:#39ff14; text-shadow:0 0 8px #39ff14;">Correct!</strong> <br><br>${currentQuizExplanation}`;
             } else {
-                element.classList.add('incorrect');
-                quizFeedback.style.backgroundColor = '#7f1d1d';
-                quizFeedback.style.border = '1px solid #b91c1c';
-                quizFeedback.style.color = '#fecaca';
-                quizFeedback.innerHTML = `<strong>Incorrect.</strong> <br><br>${currentQuizExplanation}`;
+                element.style.backgroundColor = 'rgba(255, 7, 58, 0.2)';
+                element.style.borderColor = '#ff073a';
+                element.style.boxShadow = '0 0 15px rgba(255,7,58,0.4)';
+                quizFeedback.style.backgroundColor = 'rgba(255, 7, 58, 0.1)';
+                quizFeedback.style.border = '1px solid #ff073a';
+                quizFeedback.style.color = '#fff';
+                quizFeedback.style.boxShadow = '0 0 15px rgba(255, 7, 58, 0.2)';
+                quizFeedback.innerHTML = `<strong style="color:#ff073a; text-shadow:0 0 8px #ff073a;">Incorrect.</strong> <br><br>${currentQuizExplanation}`;
             }
             quizFeedback.style.display = 'block';
         }
