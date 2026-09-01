@@ -4,148 +4,219 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SentinelLearn | AI Cybersecurity Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-gradient: linear-gradient(to right, #000000, #2b2b2b);
+            --bg-dark: #050505;
+            --bg-gradient: radial-gradient(circle at top, #111 0%, #000 100%);
             --neon-primary: #00f3ff;
             --neon-secondary: #bc13fe;
             --neon-green: #39ff14;
+            --neon-warning: #ffaa00;
             --text-main: #ffffff;
-            --text-muted: #aaaaaa;
-            --panel-bg: rgba(20, 20, 20, 0.7);
-            --border-light: rgba(255, 255, 255, 0.1);
+            --text-muted: #a0a0a0;
+            --panel-bg: rgba(20, 20, 20, 0.6);
+            --border-light: rgba(255, 255, 255, 0.08);
+            --glass-blur: blur(16px);
         }
 
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            text-align: center; 
+            font-family: 'Inter', sans-serif; 
             margin: 0;
             padding: 0;
-            background: var(--bg-gradient); 
+            background: var(--bg-dark);
+            background-image: var(--bg-gradient);
             color: var(--text-main); 
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* Subtle grid background pattern */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(var(--border-light) 1px, transparent 1px), linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.2;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .container { 
-            max-width: 900px; 
-            margin: 0 auto; 
-            padding: 60px 40px;
+            max-width: 1200px; 
+            width: 90%;
+            margin: 40px auto; 
+            padding: 50px;
             background: var(--panel-bg);
             border: 1px solid var(--border-light);
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            animation: fadeIn 1s ease-out;
+            border-radius: 32px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
+            font-size: 3.5rem;
+            margin: 0 0 20px 0;
             font-weight: 700;
-            letter-spacing: -1px;
-            background: linear-gradient(90deg, #fff, var(--text-muted));
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #fff 0%, #888 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        p { 
-            font-size: 1.25rem; 
+        p.subtitle { 
+            font-size: 1.2rem; 
             color: var(--text-muted); 
-            line-height: 1.6; 
-            margin-bottom: 40px; 
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
+            line-height: 1.7; 
+            margin: 0 auto 50px auto; 
+            max-width: 800px;
         }
 
-        .button-group { 
-            display: flex; 
-            justify-content: center; 
-            gap: 20px; 
-            flex-wrap: wrap; 
+        /* Module Grid */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
         }
 
-        .btn { 
-            display: inline-block; 
-            padding: 14px 28px; 
-            background-color: transparent; 
-            color: var(--text-main); 
-            text-decoration: none; 
-            border-radius: 50px; 
-            font-weight: 600; 
-            font-size: 1rem;
-            border: 1px solid var(--border-light);
-            transition: all 0.3s ease;
+        .module-card {
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+            text-align: left;
+            padding: 40px 30px;
+            border-radius: 24px;
+            text-decoration: none;
             overflow: hidden;
+            border: 1px solid var(--border-light);
+            background: rgba(10, 10, 10, 0.8);
+            min-height: 250px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 1;
         }
 
-        .btn::before {
-            content: '';
+        /* Module Background Images with Transparency */
+        .module-bg {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.05);
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
             z-index: -1;
-            transition: all 0.3s ease;
-            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            filter: grayscale(80%) contrast(120%);
         }
 
-        .btn:hover::before { opacity: 1; }
-
-        .btn-primary { 
-            border-color: var(--neon-primary); 
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-            color: var(--neon-primary);
-        }
-        .btn-primary:hover {
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6), inset 0 0 10px rgba(0, 243, 255, 0.2);
-            text-shadow: 0 0 8px var(--neon-primary);
+        /* Hover Effects */
+        .module-card:hover {
+            transform: translateY(-8px);
+            background: rgba(15, 15, 15, 0.9);
         }
 
-        .btn-success { 
-            border-color: var(--neon-green); 
-            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
-            color: var(--neon-green);
-        }
-        .btn-success:hover {
-            box-shadow: 0 0 20px rgba(57, 255, 20, 0.6), inset 0 0 10px rgba(57, 255, 20, 0.2);
-            text-shadow: 0 0 8px var(--neon-green);
+        .module-card:hover .module-bg {
+            opacity: 0.35;
+            transform: scale(1.05);
+            filter: grayscale(20%) contrast(120%);
         }
 
-        .btn-warning { 
-            border-color: var(--neon-secondary); 
-            box-shadow: 0 0 10px rgba(188, 19, 254, 0.2);
-            color: var(--neon-secondary);
+        /* Individual Card Accents */
+        .card-dashboard:hover { border-color: var(--neon-primary); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); }
+        .card-password:hover { border-color: var(--neon-green); box-shadow: 0 10px 40px rgba(57, 255, 20, 0.15); }
+        .card-education:hover { border-color: var(--text-main); box-shadow: 0 10px 40px rgba(255, 255, 255, 0.15); }
+        .card-quiz:hover { border-color: var(--neon-secondary); box-shadow: 0 10px 40px rgba(188, 19, 254, 0.15); }
+
+        .module-card h3 {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .btn-warning:hover {
-            box-shadow: 0 0 20px rgba(188, 19, 254, 0.6), inset 0 0 10px rgba(188, 19, 254, 0.2);
-            text-shadow: 0 0 8px var(--neon-secondary);
+
+        .module-card p {
+            color: #bbb;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Icon styling */
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
         }
         
-        .btn-default:hover {
-            border-color: #fff;
-            box-shadow: 0 0 15px rgba(255,255,255,0.4);
-        }
+        .card-dashboard .icon-circle { color: var(--neon-primary); border-color: rgba(0,243,255,0.3); }
+        .card-password .icon-circle { color: var(--neon-green); border-color: rgba(57,255,20,0.3); }
+        .card-education .icon-circle { color: #fff; border-color: rgba(255,255,255,0.3); }
+        .card-quiz .icon-circle { color: var(--neon-secondary); border-color: rgba(188,19,254,0.3); }
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to SentinelLearn</h1>
-        <p>An AI-Driven Cybersecurity & Threat Simulation Platform designed to bridge the gap between theoretical cybersecurity education and practical threat recognition.</p>
-        <div class="button-group">
-            <a href="/dashboard" class="btn btn-primary">Launch Dashboard</a>
-            <a href="/password-manager" class="btn btn-success">Password Manager</a>
-            <a href="/education" class="btn btn-default">Threat Education Hub</a>
-            <a href="/quiz" class="btn btn-warning">Flashcards & Quizzes</a>
+        <h1>SentinelLearn</h1>
+        <p class="subtitle">An AI-Driven Cybersecurity & Threat Simulation Platform designed to bridge the gap between theoretical cybersecurity education and practical threat recognition.</p>
+        
+        <div class="module-grid">
+            <!-- Dashboard Card -->
+            <a href="/dashboard" class="module-card card-dashboard">
+                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800');"></div>
+                <div class="icon-circle">🛡️</div>
+                <h3>Launch Dashboard</h3>
+                <p>Monitor real-time system logs, scan external URLs/files, and intercept threats instantly.</p>
+            </a>
+
+            <!-- Password Manager Card -->
+            <a href="/password-manager" class="module-card card-password">
+                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1614064641913-6b71a3061283?auto=format&fit=crop&q=80&w=800');"></div>
+                <div class="icon-circle">🔐</div>
+                <h3>Password Vault</h3>
+                <p>Generate highly secure passwords, store credentials, and check against live data breach records.</p>
+            </a>
+
+            <!-- Education Hub Card -->
+            <a href="/education" class="module-card card-education">
+                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800');"></div>
+                <div class="icon-circle">🧠</div>
+                <h3>Education Hub</h3>
+                <p>Consult with the Sentinel AI tutor for real-time answers on malware, safe browsing, and infosec.</p>
+            </a>
+
+            <!-- Quizzes Card -->
+            <a href="/quiz" class="module-card card-quiz">
+                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&q=80&w=800');"></div>
+                <div class="icon-circle">⚡</div>
+                <h3>Flashcards & Quizzes</h3>
+                <p>Generate AI-powered dynamic study sets to test your cybersecurity knowledge on demand.</p>
+            </a>
         </div>
     </div>
 </body>

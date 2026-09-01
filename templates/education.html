@@ -4,124 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Education Hub | SentinelLearn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-gradient: linear-gradient(to right, #000000, #2b2b2b);
+            --bg-dark: #050505;
             --glow-primary: #4facfe;
-            --panel-bg: rgba(15, 15, 15, 0.75);
+            --panel-bg: rgba(18, 18, 18, 0.75);
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-muted: #888888;
+            --glass-blur: blur(20px);
         }
 
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            margin: 0;
-            padding: 0;
-            background: var(--bg-gradient); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 0;
+            background: radial-gradient(circle at top left, #151515 0%, var(--bg-dark) 100%);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 40px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-light);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
-            z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(5, 5, 5, 0.65);
+            backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-light); z-index: 10;
         }
-        header h1 { margin: 0; font-size: 1.4rem; color: #fff; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px;}
-        header h1::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--glow-primary); box-shadow: 0 0 10px var(--glow-primary); }
-        .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 25px; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; }
-        .nav-links a:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+        header h1 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 12px;}
+        header h1::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--glow-primary); box-shadow: 0 0 15px var(--glow-primary); }
+        
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; position: relative; }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a::after { content: ''; position: absolute; left: 0; bottom: -5px; width: 0%; height: 2px; background: var(--glow-primary); transition: width 0.3s ease; }
+        .nav-links a:hover::after { width: 100%; box-shadow: 0 0 8px var(--glow-primary); }
 
-        .content-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
+        .content-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
 
         .card { 
-            background: var(--panel-bg); 
-            padding: 50px; 
-            border-radius: 20px; 
-            border: 1px solid var(--border-light);
-            max-width: 800px; 
-            width: 100%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
+            background: var(--panel-bg); padding: 50px 60px; border-radius: 24px; 
+            border: 1px solid var(--border-light); max-width: 900px; width: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.02);
+            backdrop-filter: var(--glass-blur);
         }
         
-        .card h1 { color: #fff; margin-top: 0; font-weight: 600; font-size: 2rem; text-align: center;}
-        p.subtitle { text-align: center; font-size: 1.05rem; color: var(--text-muted); margin-bottom: 40px; }
+        .card h1 { color: #fff; margin: 0 0 10px 0; font-weight: 600; font-size: 2.2rem; text-align: center;}
+        p.subtitle { text-align: center; font-size: 1.1rem; color: var(--text-muted); margin-bottom: 40px; line-height: 1.6;}
         
         .chat-container { display: flex; flex-direction: column; gap: 20px; }
         
         textarea {
-            width: 100%;
-            padding: 20px;
-            background-color: rgba(0,0,0,0.5);
-            color: #fff;
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            font-size: 1.05rem;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 120px;
-            box-sizing: border-box;
-            transition: all 0.3s;
-            outline: none;
+            width: 100%; padding: 25px; background-color: rgba(0,0,0,0.4); color: #fff;
+            border: 1px solid var(--border-light); border-radius: 16px; font-size: 1.1rem;
+            font-family: 'Inter', sans-serif; resize: vertical; min-height: 140px;
+            box-sizing: border-box; transition: all 0.3s ease; outline: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
         }
-        textarea:focus { border-color: var(--glow-primary); box-shadow: 0 0 15px rgba(79, 172, 254, 0.2); }
+        textarea:focus { border-color: var(--glow-primary); box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 0 20px rgba(79, 172, 254, 0.2); background-color: rgba(0,0,0,0.6); }
         
         .btn {
-            padding: 14px 30px;
-            background-color: transparent;
-            color: var(--glow-primary);
-            border: 1px solid var(--glow-primary);
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1.05rem;
-            font-weight: 600;
-            transition: all 0.3s;
-            align-self: flex-end;
-            box-shadow: 0 0 10px rgba(79, 172, 254, 0.1);
+            padding: 16px 35px; background-color: transparent; color: var(--glow-primary);
+            border: 1px solid var(--glow-primary); border-radius: 50px; cursor: pointer;
+            font-size: 1.05rem; font-weight: 600; transition: all 0.3s; align-self: flex-end;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.1); font-family: 'Inter', sans-serif;
         }
         .btn:hover:not(:disabled) { 
-            background-color: rgba(79, 172, 254, 0.1);
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
-            text-shadow: 0 0 8px var(--glow-primary);
+            background-color: rgba(79, 172, 254, 0.1); box-shadow: 0 0 25px rgba(79, 172, 254, 0.4);
+            text-shadow: 0 0 8px var(--glow-primary); transform: translateY(-2px);
         }
-        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; }
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; opacity: 0.5;}
 
         .response-area {
-            margin-top: 30px;
-            padding: 25px;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            display: none;
-            line-height: 1.7;
-            font-size: 1.05rem;
-            animation: fadeIn 0.4s ease-out;
+            margin-top: 40px; padding: 35px; background: rgba(5, 5, 5, 0.6);
+            border: 1px solid var(--border-light); border-radius: 16px; display: none;
+            line-height: 1.8; font-size: 1.1rem; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #e0e0e0;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .response-area h3 { margin-top: 0; color: var(--glow-primary); font-size: 1.1rem; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;}
+        .response-area h3 { margin: 0 0 20px 0; color: var(--glow-primary); font-size: 1.2rem; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; gap: 10px;}
+        .response-area h3::before { content: '🤖'; font-size: 1.4rem; }
     </style>
 </head>
 <body>
     <header>
         <h1>Sentinel EduBot</h1>
         <div class="nav-links">
+            <a href="/">Home</a>
             <a href="/dashboard">Dashboard</a>
             <a href="/password-manager">Password Vault</a>
             <a href="/quiz">Quizzes</a>
@@ -130,17 +98,17 @@
 
     <div class="content-wrapper">
         <div class="card">
-            <h1>Ask Sentinel AI</h1>
-            <p class="subtitle">Ask any question about cybersecurity, malware, or safe browsing habits.</p>
+            <h1>Consult Sentinel AI</h1>
+            <p class="subtitle">Your personal expert on cybersecurity, malware analysis, and safe digital practices. Ask any question.</p>
             
             <div class="chat-container">
-                <textarea id="questionInput" placeholder="E.g., What is ransomware and how do I prevent it?"></textarea>
+                <textarea id="questionInput" placeholder="E.g., What is ransomware, and how does it propagate across a local network?"></textarea>
                 <button id="askBtn" class="btn">Ask Sentinel</button>
             </div>
 
             <div id="responseArea" class="response-area">
-                <h3>AI Response</h3>
-                <div id="responseContent" style="color: #ddd;"></div>
+                <h3>Sentinel Output</h3>
+                <div id="responseContent"></div>
             </div>
         </div>
     </div>
@@ -156,9 +124,17 @@
             if (!question) return;
             
             askBtn.disabled = true;
-            askBtn.innerText = 'Thinking...';
+            askBtn.innerText = 'Synthesizing...';
             responseArea.style.display = 'block';
-            responseContent.innerHTML = '<span style="color: #888; font-style: italic;">Synthesizing answer...</span>';
+            responseContent.innerHTML = '<span style="color: #666; font-style: italic; display: flex; align-items: center; gap: 10px;">Generating response <span class="spinner" style="display:inline-block;animation:spin 1s linear infinite;">⏳</span></span>';
+
+            // Just adding a quick spinner keyframe dynamically for the loading state
+            if(!document.getElementById('spinStyle')) {
+                const style = document.createElement('style');
+                style.id = 'spinStyle';
+                style.innerHTML = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+                document.head.appendChild(style);
+            }
 
             try {
                 const res = await fetch('/api/ask-education', {
@@ -170,12 +146,15 @@
                 const json = await res.json();
                 
                 if (json.status === 'success') {
-                    responseContent.innerHTML = json.answer.replace(/\n/g, '<br>');
+                    // Replace newlines and simple bold markdown for cleaner output
+                    let formattedAnswer = json.answer.replace(/\n/g, '<br>');
+                    formattedAnswer = formattedAnswer.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>');
+                    responseContent.innerHTML = formattedAnswer;
                 } else {
-                    responseContent.innerHTML = `<span style="color: #e74c3c;">Error: ${json.message}</span>`;
+                    responseContent.innerHTML = `<span style="color: #ff4757;">Error: ${json.message}</span>`;
                 }
             } catch (e) {
-                responseContent.innerHTML = '<span style="color: #e74c3c;">Connection error communicating with Sentinel AI.</span>';
+                responseContent.innerHTML = '<span style="color: #ff4757;">Connection error communicating with Sentinel AI.</span>';
             } finally {
                 askBtn.disabled = false;
                 askBtn.innerText = 'Ask Sentinel';
