@@ -4,31 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Education Hub | SentinelLearn</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
     <style>
         :root {
             --bg-dark: #050505;
+            --bg-gradient: radial-gradient(circle at top, #111 0%, #000 100%);
             --glow-primary: #4facfe;
-            --panel-bg: rgba(18, 18, 18, 0.75);
+            --panel-bg: rgba(20, 20, 20, 0.6);
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
-            --text-muted: #888888;
-            --glass-blur: blur(20px);
+            --text-muted: #a0a0a0;
+            --glass-blur: blur(16px);
         }
 
         body { 
             font-family: 'Inter', sans-serif; 
             margin: 0; padding: 0;
-            background: radial-gradient(circle at top left, #151515 0%, var(--bg-dark) 100%);
+            background: var(--bg-dark);
+            background-image: var(--bg-gradient);
             color: var(--text-main);
             min-height: 100vh;
             display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        /* Subtle grid background pattern matching the landing page */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(var(--border-light) 1px, transparent 1px), linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.2;
+            z-index: -1;
+            pointer-events: none;
         }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 20px 50px; background: rgba(5, 5, 5, 0.65);
-            backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-light); z-index: 10;
+            backdrop-filter: var(--glass-blur); 
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border-light); z-index: 10;
         }
         header h1 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 12px;}
         header h1::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--glow-primary); box-shadow: 0 0 15px var(--glow-primary); }
@@ -39,18 +56,101 @@
         .nav-links a::after { content: ''; position: absolute; left: 0; bottom: -5px; width: 0%; height: 2px; background: var(--glow-primary); transition: width 0.3s ease; }
         .nav-links a:hover::after { width: 100%; box-shadow: 0 0 8px var(--glow-primary); }
 
-        .content-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
+        /* Two-column layout */
+        .content-wrapper { 
+            flex: 1; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 40px; 
+            padding: 40px 50px; 
+            max-width: 1600px; 
+            margin: 0 auto; 
+            width: 100%;
+            box-sizing: border-box;
+            align-items: start;
+        }
 
-        .card { 
-            background: var(--panel-bg); padding: 50px 60px; border-radius: 24px; 
-            border: 1px solid var(--border-light); max-width: 900px; width: 100%;
+        /* Responsive collapse for smaller screens */
+        @media (max-width: 1024px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-card { 
+            background: var(--panel-bg); 
+            padding: 40px 50px; 
+            border-radius: 24px; 
+            border: 1px solid var(--border-light); 
             box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.02);
             backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            height: 100%;
+            box-sizing: border-box;
         }
         
-        .card h1 { color: #fff; margin: 0 0 10px 0; font-weight: 600; font-size: 2.2rem; text-align: center;}
-        p.subtitle { text-align: center; font-size: 1.1rem; color: var(--text-muted); margin-bottom: 40px; line-height: 1.6;}
+        .panel-card h1 { color: #fff; margin: 0 0 10px 0; font-weight: 600; font-size: 2rem;}
+        .panel-card h2 { color: #fff; margin: 0 0 10px 0; font-weight: 600; font-size: 1.6rem;}
+        p.subtitle { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6;}
         
+        /* Left Column: Info Styling */
+        .info-section {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        .info-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .info-section h3 {
+            margin: 0 0 15px 0;
+            color: #fff;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-section ul {
+            margin: 0 0 20px 0;
+            padding-left: 20px;
+            color: #d0d0d0;
+            line-height: 1.7;
+            flex-grow: 1;
+        }
+        .info-section li { margin-bottom: 10px; }
+        .info-section strong { color: var(--glow-primary); }
+
+        .deep-dive-btn {
+            display: inline-block;
+            align-self: flex-start;
+            padding: 12px 20px;
+            background: rgba(79, 172, 254, 0.1);
+            color: var(--glow-primary);
+            border: 1px solid var(--glow-primary);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .deep-dive-btn:hover {
+            background: rgba(79, 172, 254, 0.2);
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Right Column: Chat Styling */
         .chat-container { display: flex; flex-direction: column; gap: 20px; }
         
         textarea {
@@ -74,7 +174,7 @@
         .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; opacity: 0.5;}
 
         .response-area {
-            margin-top: 40px; padding: 35px; background: rgba(5, 5, 5, 0.6);
+            margin-top: 30px; padding: 35px; background: rgba(5, 5, 5, 0.6);
             border: 1px solid var(--border-light); border-radius: 16px; display: none;
             line-height: 1.8; font-size: 1.1rem; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             color: #e0e0e0;
@@ -97,9 +197,45 @@
     </header>
 
     <div class="content-wrapper">
-        <div class="card">
+        
+        <!-- Left Column: Information Panel -->
+        <div class="panel-card">
+            <h2>Cybersecurity Essentials</h2>
+            <p class="subtitle">A quick reference guide for recognizing and neutralizing digital threats. Choose a topic to dive into an interactive learning module.</p>
+            
+            <div class="info-section">
+                <img class="info-image" src="https://images.unsplash.com/photo-1562813733-b31f71025d54?auto=format&fit=crop&w=800&q=80" alt="Hacker Code Screen">
+                <ul>
+                    <li><strong>Phishing Elements:</strong> Look for extreme urgency, spelling errors, and sender email addresses that don't match the company domain.</li>
+                    <li><strong>Deceptive URLs:</strong> Always hover over links before clicking. Ensure the spelling of the domain is exact (e.g., <em>google.com</em> vs <em>g00gle.com</em>).</li>
+                </ul>
+                <a href="/education/topic/phishing" class="deep-dive-btn">Deep Dive: Interactive Phishing Module ➔</a>
+            </div>
+
+            <div class="info-section">
+                <img class="info-image" src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Binary code malware concept">
+                <h3>🛡️ How to Prevent Attacks</h3>
+                <ul>
+                    <li><strong>Unexpected Payloads:</strong> Treat unsolicited attachments with extreme caution, particularly executable files (.exe) or compressed archives (.zip).</li>
+                    <li><strong>Patch Management:</strong> Keep your operating system, web browsers, and critical software updated to eliminate known vulnerabilities.</li>
+                </ul>
+                <a href="/education/topic/malware" class="deep-dive-btn">Deep Dive: Interactive Malware Sandbox ➔</a>
+            </div>
+
+            <div class="info-section">
+                <img class="info-image" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80" alt="Network server racks">
+                <ul>
+                    <li><strong>Multi-Factor Authentication (MFA):</strong> Enable MFA on all accounts. Even if your password is stolen, attackers cannot bypass the secondary token.</li>
+                    <li><strong>Zero Trust:</strong> Never automatically trust public Wi-Fi. Avoid logging into banking or sensitive portals on unencrypted networks.</li>
+                </ul>
+                <a href="/education/topic/network" class="deep-dive-btn">Deep Dive: Interactive Zero Trust Module ➔</a>
+            </div>
+        </div>
+
+        <!-- Right Column: AI Chatbot -->
+        <div class="panel-card">
             <h1>Consult Sentinel AI</h1>
-            <p class="subtitle">Your personal expert on cybersecurity, malware analysis, and safe digital practices. Ask any question.</p>
+            <p class="subtitle">Have specific questions? Your personal expert on malware analysis, infosec, and safe digital practices is standing by.</p>
             
             <div class="chat-container">
                 <textarea id="questionInput" placeholder="E.g., What is ransomware, and how does it propagate across a local network?"></textarea>
@@ -111,6 +247,7 @@
                 <div id="responseContent"></div>
             </div>
         </div>
+
     </div>
 
     <script>
@@ -128,7 +265,6 @@
             responseArea.style.display = 'block';
             responseContent.innerHTML = '<span style="color: #666; font-style: italic; display: flex; align-items: center; gap: 10px;">Generating response <span class="spinner" style="display:inline-block;animation:spin 1s linear infinite;">⏳</span></span>';
 
-            // Just adding a quick spinner keyframe dynamically for the loading state
             if(!document.getElementById('spinStyle')) {
                 const style = document.createElement('style');
                 style.id = 'spinStyle';

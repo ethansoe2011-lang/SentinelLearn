@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Dive: {{ topic_id | capitalize }} | SentinelLearn</title>
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --bg-gradient: radial-gradient(circle at top, #111 0%, #000 100%);
+            --glow-primary: #4facfe;
+            --panel-bg: rgba(20, 20, 20, 0.6);
+            --border-light: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --glass-blur: blur(16px);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 0;
+            background: var(--bg-dark);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(var(--border-light) 1px, transparent 1px), linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0.2; z-index: -1; pointer-events: none;
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(5, 5, 5, 0.65);
+            backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-light); z-index: 10;
+        }
+        header h1 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 12px;}
+        header h1::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--glow-primary); box-shadow: 0 0 15px var(--glow-primary); }
+        
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; position: relative; }
+        .nav-links a:hover { color: #fff; }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            width: 100%;
+            padding: 0 40px;
+            box-sizing: border-box;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+        .back-btn:hover { color: var(--glow-primary); }
+
+        .content-panel {
+            background: var(--panel-bg); 
+            padding: 50px; 
+            border-radius: 24px; 
+            border: 1px solid var(--border-light); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .content-panel h1 { font-size: 2.5rem; margin-top: 0; color: #fff; }
+        .content-panel p { line-height: 1.8; color: #d0d0d0; font-size: 1.1rem; }
+
+        .activity-section {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Module 1: Phishing Interactive CSS */
+        .phish-email-box {
+            background: #fff;
+            color: #222;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-top: 20px;
+        }
+        .phish-email-header { border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 20px; font-size: 0.95rem; }
+        .phish-flag {
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px dashed transparent;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .phish-flag:hover:not(.discovered) {
+            background: rgba(0,0,0,0.05);
+            border: 1px dashed #888;
+        }
+        .phish-score-board { margin-bottom: 20px; font-weight: 600; color: var(--glow-primary); }
+        .success-box { display: none; margin-top: 20px; padding: 20px; background: rgba(46, 213, 115, 0.1); border: 1px solid #2ed573; border-radius: 12px; color: #2ed573; }
+
+        /* Module 2: Malware Interactive CSS */
+        .sandbox-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;
+        }
+        .sandbox-item {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border-light);
+            padding: 20px; border-radius: 12px; text-align: center;
+        }
+        .file-icon { font-size: 3rem; margin-bottom: 15px; }
+        .sandbox-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .btn-sandbox { padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-allow { background: rgba(46, 213, 115, 0.2); color: #2ed573; border: 1px solid #2ed573; }
+        .btn-block { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; }
+        .btn-sandbox:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+        /* Module 3: Network/MFA Interactive CSS */
+        .mfa-container {
+            display: flex; gap: 40px; margin-top: 20px;
+        }
+        .hacker-side, .user-side {
+            flex: 1; padding: 30px; border-radius: 12px; border: 1px solid var(--border-light);
+        }
+        .hacker-side { background: rgba(255, 71, 87, 0.05); }
+        .user-side { background: rgba(46, 213, 115, 0.05); text-align: center; opacity: 0.3; pointer-events: none; transition: 0.5s; }
+        .terminal-input { width: 100%; padding: 12px; background: #000; color: #39ff14; border: 1px solid #333; margin-bottom: 15px; font-family: monospace;}
+        .phone-frame { border: 4px solid #444; border-radius: 24px; padding: 20px; background: #000; display: inline-block; width: 250px;}
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sentinel EduBot</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/education">Education Hub</a>
+            <a href="/quiz">Quizzes</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="/education" class="back-btn">← Back to Education Hub</a>
+        
+        <div class="content-panel">
+            {% if topic_id == 'phishing' %}
+                <h1>Understanding Phishing</h1>
+                <p>Phishing attacks remain one of the most prevalent and damaging threats in the digital landscape, relying heavily on social engineering rather than purely technical exploits. Cybercriminals use sophisticated psychological tactics to manipulate individuals into revealing sensitive information, such as login credentials, proprietary data, or financial details. Beyond just checking for spelling errors or deceptive URLs, it is crucial to cultivate a mindset of 'zero trust' when interacting with unsolicited communications. Attackers frequently masquerade as trusted entities—like your bank, a high-level executive, or a popular software provider—using a false sense of urgency, curiosity, or fear to bypass your logical scrutiny and rush you into clicking a malicious link.</p>
+                <p>To avoid falling victim, you must inspect the <strong>sender address</strong>, evaluate the <strong>sense of urgency</strong>, and hover over <strong>hyperlinks</strong> before clicking them.</p>
+                
+                <div class="activity-section">
+                    <h2>Interactive Activity: Spot the Phish</h2>
+                    <p>Click on the <strong>3 red flags</strong> in the email below to successfully identify the phishing attempt.</p>
+                    <div class="phish-score-board">Flags Found: <span id="phish-score">0</span> / 3</div>
+                    
+                    <div class="phish-email-box">
+                        <div class="phish-email-header">
+                            <strong>From:</strong> <span class="phish-flag" id="flag-sender">security@paypa1-update.com</span><br>
+                            <strong>To:</strong> user@company.com<br>
+                            <strong>Subject:</strong> <span class="phish-flag" id="flag-urgency">URGENT: Your account will be DELETED in 24 hours</span>
+                        </div>
+                        <div class="phish-email-body">
+                            <p>Dear Customer,</p>
+                            <p>We detected suspicious activity on your account. For your security, we have temporarily suspended your access.</p>
+                            <p>To restore your account and prevent permanent deletion, you must verify your identity immediately.</p>
+                            <p style="text-align: center; margin: 30px 0;">
+                                <a href="javascript:void(0);" class="phish-flag" id="flag-link" style="background: #0070ba; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">Verify Account Now</a>
+                                <br><small style="color: #888;">(Hover reveals: [http://login-verify-account.net](http://login-verify-account.net))</small>
+                            </p>
+                            <p>Thank you,<br>Security Team</p>
+                        </div>
+                    </div>
+                    
+                    <div class="success-box" id="phish-success">
+                        <h3>🎉 Threat Neutralized!</h3>
+                        <p>Excellent job. You successfully identified the spoofed sender domain, the false sense of urgency, and the malicious hyperlink.</p>
+                    </div>
+                </div>
+
+            {% elif topic_id == 'malware' %}
+                <h1>Malware & Payloads</h1>
+                <p>Mitigating malware risks requires a comprehensive, multi-layered defense strategy. While avoiding unexpected payloads and maintaining strict patch management are essential foundational steps, systems must also be protected by robust endpoint security. This includes utilizing advanced anti-malware software that relies on heuristic and behavioral analysis to catch new, undocumented threats, rather than just checking against a list of known viruses. Furthermore, implementing the principle of least privilege ensures that even if a standard user's account is compromised by a malicious download, the malware's ability to install itself system-wide, alter system registries, or access critical administrative functions is severely restricted.</p>
+                <p>Modern security requires a critical eye before executing ANY downloaded file. Operating systems often hide file extensions by default, which attackers use to disguise executables as harmless documents.</p>
+
+                <div class="activity-section">
+                    <h2>Interactive Activity: The Sandbox Inspector</h2>
+                    <p>You received three files from an external vendor email. Inspect them and choose to either <strong>Block</strong> or <strong>Allow</strong> each file.</p>
+                    
+                    <div class="sandbox-grid">
+                        <div class="sandbox-item" data-type="safe">
+                            <div class="file-icon">📄</div>
+                            <strong>Q3_Report.pdf</strong>
+                            <p style="font-size: 0.85rem; color: #aaa;">Standard PDF Document.</p>
+                            <div class="sandbox-actions">
+                                <button class="btn-sandbox btn-allow">Allow</button>
+                                <button class="btn-sandbox btn-block">Block</button>
+                            </div>
+                        </div>
+
+                        <div class="sandbox-item" data-type="danger">
+                            <div class="file-icon">📦</div>
+                            <strong>Invoice.pdf.exe</strong>
+                            <p style="font-size: 0.85rem; color: #aaa;">Windows Executable disguised as a PDF.</p>
+                            <div class="sandbox-actions">
+                                <button class="btn-sandbox btn-allow">Allow</button>
+                                <button class="btn-sandbox btn-block">Block</button>
+                            </div>
+                        </div>
+
+                        <div class="sandbox-item" data-type="danger">
+                            <div class="file-icon">📝</div>
+                            <strong>Contracts.docm</strong>
+                            <p style="font-size: 0.85rem; color: #aaa;">Macro-enabled Word document.</p>
+                            <div class="sandbox-actions">
+                                <button class="btn-sandbox btn-allow">Allow</button>
+                                <button class="btn-sandbox btn-block">Block</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="success-box" id="malware-success" style="margin-top:30px;">
+                        <!-- JS injects results here -->
+                    </div>
+                </div>
+
+            {% elif topic_id == 'network' %}
+                <h1>Zero Trust & Safe Habits</h1>
+                <p>Securing the underlying network infrastructure is a vital component of holistic cybersecurity. Network server racks, like the ones referenced in your final section, house the physical hardware that processes, routes, and stores an organization's most critical data. A comprehensive security posture involves both physical safeguards—such as biometric access controls and surveillance for server rooms—and robust digital defenses. Implementing strict firewalls, intrusion detection and prevention systems (IDPS), and logical network segmentation ensures that if one isolated part of the network is breached, the attacker cannot easily move laterally to access the core servers and sensitive databases.</p>
+                <p>Multi-Factor Authentication (MFA) is a core component of this. It ensures that even if a hacker steals your password, they cannot gain access without your secondary device.</p>
+
+                <div class="activity-section">
+                    <h2>Interactive Activity: MFA Intercept</h2>
+                    <p>A hacker in a remote location has stolen your password from a recent data breach. Watch what happens when they attempt to log in.</p>
+                    
+                    <div class="mfa-container">
+                        <div class="hacker-side">
+                            <h3 style="margin-top:0; color:#ff4757;">Hacker Terminal</h3>
+                            <input type="text" class="terminal-input" value="Username: admin" readonly>
+                            <input type="password" class="terminal-input" value="password123" readonly>
+                            <button id="hacker-btn" style="background:#ff4757; color:#fff; border:none; padding:10px 20px; cursor:pointer;">Initiate Login</button>
+                            <div id="hacker-screen" style="margin-top:20px; font-family:monospace;"></div>
+                        </div>
+                        
+                        <div class="user-side" id="user-phone-container">
+                            <h3 style="margin-top:0;">Your Smartphone</h3>
+                            <div class="phone-frame">
+                                <div id="phone-screen">
+                                    <h4 style="color:#fff;">Login Request</h4>
+                                    <p style="font-size:0.85rem; color:#aaa;">Location: Moscow, RU<br>Device: Unknown Linux PC</p>
+                                    <button class="btn-sandbox btn-allow" id="btn-approve" style="width:100%; margin-bottom:10px;">Approve</button>
+                                    <button class="btn-sandbox btn-block" id="btn-deny" style="width:100%;">Deny</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="success-box" id="mfa-outcome"></div>
+                </div>
+
+            {% else %}
+                <h1>Topic Not Found</h1>
+                <p>The requested educational module could not be found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Logic for Phishing Module
+            const flags = document.querySelectorAll('.phish-flag');
+            if(flags.length > 0) {
+                let foundFlags = 0;
+                flags.forEach(el => {
+                    el.addEventListener('click', function() {
+                        if (!this.classList.contains('discovered')) {
+                            this.classList.add('discovered');
+                            this.style.backgroundColor = 'rgba(255, 71, 87, 0.2)';
+                            this.style.border = '1px solid #ff4757';
+                            this.style.color = '#ff4757';
+                            foundFlags++;
+                            document.getElementById('phish-score').innerText = foundFlags;
+                            if (foundFlags === 3) {
+                                document.getElementById('phish-success').style.display = 'block';
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Logic for Malware Sandbox Module
+            const sandboxItems = document.querySelectorAll('.sandbox-item');
+            if(sandboxItems.length > 0) {
+                let attempts = 0;
+                let score = 0;
+                
+                sandboxItems.forEach(item => {
+                    const btnAllow = item.querySelector('.btn-allow');
+                    const btnBlock = item.querySelector('.btn-block');
+                    
+                    btnAllow.addEventListener('click', () => {
+                        if(item.dataset.type === 'safe') {
+                            item.style.borderColor = '#2ed573';
+                            item.innerHTML = '<h4 style="color:#2ed573; margin:0;">Allowed (Safe) ✓</h4>';
+                            score++;
+                        } else {
+                            item.style.borderColor = '#ff4757';
+                            item.innerHTML = '<h4 style="color:#ff4757; margin:0;">COMPROMISED! ☠️</h4><p style="font-size:0.8rem;">You allowed malware.</p>';
+                        }
+                        checkMalwareWin();
+                    }, {once: true});
+
+                    btnBlock.addEventListener('click', () => {
+                        if(item.dataset.type === 'danger') {
+                            item.style.borderColor = '#2ed573';
+                            item.innerHTML = '<h4 style="color:#2ed573; margin:0;">Blocked ✓</h4><p style="font-size:0.8rem;">Threat averted.</p>';
+                            score++;
+                        } else {
+                            item.style.borderColor = '#ffa502';
+                            item.innerHTML = '<h4 style="color:#ffa502; margin:0;">False Positive ⚠️</h4><p style="font-size:0.8rem;">You blocked a safe file.</p>';
+                        }
+                        checkMalwareWin();
+                    }, {once: true});
+                });
+
+                function checkMalwareWin() {
+                    attempts++;
+                    if(attempts === 3) {
+                        const successBox = document.getElementById('malware-success');
+                        successBox.style.display = 'block';
+                        if(score === 3) {
+                            successBox.innerHTML = "<h3>Perfect! System Secured 🛡️</h3><p>You successfully identified the fake extensions and malicious macros.</p>";
+                        } else {
+                            successBox.innerHTML = "<h3 style='color:#ffa502;'>Training Complete</h3><p style='color:#fff;'>Review the outcomes above to see where you made mistakes. Always verify executable extensions and be wary of office macros!</p>";
+                            successBox.style.borderColor = '#ffa502';
+                            successBox.style.backgroundColor = 'rgba(255,165,2,0.1)';
+                        }
+                    }
+                }
+            }
+
+            // Logic for Network/MFA Module
+            const hackerBtn = document.getElementById('hacker-btn');
+            if(hackerBtn) {
+                const userPhoneContainer = document.getElementById('user-phone-container');
+                const hackerScreen = document.getElementById('hacker-screen');
+                const btnApprove = document.getElementById('btn-approve');
+                const btnDeny = document.getElementById('btn-deny');
+                const mfaOutcome = document.getElementById('mfa-outcome');
+                const phoneScreen = document.getElementById('phone-screen');
+
+                hackerBtn.addEventListener('click', () => {
+                    hackerScreen.innerHTML = "<p style='color:#2ed573;'>Credentials Accepted.</p><p style='color: #ffa502;'>Awaiting MFA verification from user device...</p>";
+                    userPhoneContainer.style.opacity = '1';
+                    userPhoneContainer.style.pointerEvents = 'auto';
+                });
+
+                btnApprove.addEventListener('click', () => {
+                    hackerScreen.innerHTML = "<h3 style='color:#2ed573;'>ACCESS GRANTED</h3><p style='color:#fff;'>System breached and data extracted!</p>";
+                    phoneScreen.innerHTML = "<h4 style='color:#ff4757;'>You approved a fraudulent login!</h4>";
+                    mfaOutcome.style.display = 'block';
+                    mfaOutcome.style.borderColor = '#ff4757';
+                    mfaOutcome.style.backgroundColor = 'rgba(255,71,87,0.1)';
+                    mfaOutcome.style.color = '#ff4757';
+                    mfaOutcome.innerText = "Failure: You bypassed Zero Trust by blindly approving the MFA request from an unknown location.";
+                });
+
+                btnDeny.addEventListener('click', () => {
+                    hackerScreen.innerHTML = "<h3 style='color:#ff4757;'>ACCESS DENIED</h3><p style='color:#fff;'>MFA Rejected by User.</p>";
+                    phoneScreen.innerHTML = "<h4 style='color:#2ed573;'>Login Blocked Successfully ✓</h4>";
+                    mfaOutcome.style.display = 'block';
+                    mfaOutcome.innerText = "Success: You demonstrated Zero Trust by denying an unverified authentication request. The hacker is locked out.";
+                });
+            }
+        });
+    </script>
+</body>
+</html>

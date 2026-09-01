@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, Response, redirect
 from flask_cors import CORS
 import os
 import json
@@ -41,7 +41,7 @@ groq_client = Groq(
 )
 
 # ---------------------------------------------------------------------------
-# SECTION 1 — EXISTING ROUTES (untouched)
+# SECTION 1 — EXISTING ROUTES
 # ---------------------------------------------------------------------------
 
 @app.route('/')
@@ -58,6 +58,14 @@ def dashboard():
 def education():
     """Renders the educational hub to teach users about malicious data and threat prevention."""
     return render_template('education.html')
+
+@app.route('/education/topic/<topic_id>')
+def education_topic(topic_id):
+    """Renders in-depth interactive educational topics."""
+    valid_topics = ['phishing', 'malware', 'network']
+    if topic_id not in valid_topics:
+        return redirect('/education')
+    return render_template('topic_deep_dive.html', topic_id=topic_id)
 
 @app.route('/quiz')
 def quiz():
@@ -134,7 +142,7 @@ def ask_education():
 @app.route('/api/generate-quiz', methods=['POST'])
 def generate_quiz():
     """
-    Generates dynamic cybersecurity flashcards and a quiz using Groq based on a requested topic.
+    Generates dynamic cybersecurity flashcards, MCQs, and FRQs using Groq based on a requested topic.
     """
     data = request.get_json() or {}
     topic = data.get('topic', 'General Cybersecurity Threats, Phishing, and Malware')
@@ -144,12 +152,13 @@ def generate_quiz():
         
     try:
         prompt = (
-            f"Generate a study set about '{topic}'. "
+            f"Generate a study set about '{topic}' focusing on cybersecurity and digital safety. "
             "Output strictly in JSON format with no markdown formatting, no code blocks, and no extra text. "
             "The JSON must have this exact structure: "
             "{"
             "\"flashcards\": [{\"front\": \"Question or Concept\", \"back\": \"Answer or Definition\"}, ... generate exactly 3 flashcards], "
-            "\"quiz\": {\"question\": \"A scenario-based multiple choice question\", \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"], \"answer\": \"Exact string of the correct option\", \"explanation\": \"Why this answer is correct\"}"
+            "\"mcqs\": [{\"question\": \"A scenario-based multiple choice question\", \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"], \"answer\": \"Exact string of the correct option\", \"explanation\": \"Why this answer is correct\"}, ... generate exactly 3 MCQs], "
+            "\"frqs\": [{\"question\": \"A practical free response question requiring a short paragraph answer\"}, ... generate exactly 2 FRQs]"
             "}"
         )
         
@@ -185,11 +194,72 @@ def generate_quiz():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/api/grade-quiz', methods=['POST'])
+def grade_quiz():
+    """
+    Evaluates FRQs and overall quiz performance, generating statistics and customized feedback.
+    """
+    data = request.get_json() or {}
+    topic = data.get('topic', 'Cybersecurity')
+    mcq_score = data.get('mcq_score', 0)
+    mcq_total = data.get('mcq_total', 0)
+    frq_answers = data.get('frq_answers', [])
+    
+    try:
+        prompt = (
+            f"You are an expert cybersecurity AI grading a quiz about '{topic}'. "
+            f"The user scored {mcq_score} out of {mcq_total} on the multiple-choice section.\n\n"
+            f"Here are their Free Response Questions (FRQ) and answers:\n"
+            f"{json.dumps(frq_answers, indent=2)}\n\n"
+            "Your task:\n"
+            "1. Grade each FRQ out of 10 points and provide a short, constructive feedback sentence.\n"
+            "2. Provide an overall overview of their quiz results.\n"
+            "3. List specific topics they should focus on studying based on their gaps.\n"
+            "4. Provide practical advice on what they should be particularly careful of when browsing the internet based on this topic.\n\n"
+            "Output strictly in JSON format with no markdown formatting. Ensure it matches this exact structure:\n"
+            "{\n"
+            "  \"frq_evaluations\": [\n"
+            "    {\"question\": \"...\", \"score\": 8, \"feedback\": \"...\"}\n"
+            "  ],\n"
+            "  \"overview\": \"...\",\n"
+            "  \"focus_areas\": [\"...\", \"...\"],\n"
+            "  \"safety_warning\": \"...\"\n"
+            "}"
+        )
+        
+        chat_completion = groq_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a cybersecurity education grading AI. You only output strict, raw JSON."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            model="openai/gpt-oss-120b",
+        )
+        
+        raw_response = chat_completion.choices[0].message.content
+        cleaned_response = raw_response.strip()
+        if cleaned_response.startswith("```json"):
+            cleaned_response = cleaned_response[7:]
+        elif cleaned_response.startswith("```"):
+            cleaned_response = cleaned_response[3:]
+            
+        if cleaned_response.endswith("```"):
+            cleaned_response = cleaned_response[:-3]
+            
+        parsed_data = json.loads(cleaned_response.strip())
+        return jsonify({'status': 'success', 'data': parsed_data})
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
 # ---------------------------------------------------------------------------
 # SECTION 2 — SENTINEL LOGGER
-# Thread-safe, append-only JSONL logger with an in-memory ring buffer fallback.
-# This is fully isolated from Section 1. If it errors, nothing above breaks.
 # ---------------------------------------------------------------------------
 
 class SentinelLogger:
@@ -278,8 +348,6 @@ _sentinel_logger = SentinelLogger()
 
 # ---------------------------------------------------------------------------
 # SECTION 3 — SERVER-SIDE SYSTEM SNAPSHOT
-# Mirrors the gather_system_data() logic from local_agent.py, but runs
-# inside the Flask process. No separate script or process required.
 # ---------------------------------------------------------------------------
 
 def gather_system_snapshot() -> str:
@@ -315,10 +383,7 @@ def gather_system_snapshot() -> str:
 
 
 # ---------------------------------------------------------------------------
-# SECTION 4 — BEFORE-REQUEST HOOK (replaces local_agent.py polling loop)
-# Fires on every qualifying HTTP request with a 30-second cooldown to avoid
-# hammering the Groq API on every static asset fetch.
-# Wrapped entirely in try/except — any failure is silently swallowed.
+# SECTION 4 — BEFORE-REQUEST HOOK
 # ---------------------------------------------------------------------------
 
 _last_snapshot_time: float = 0.0          # epoch seconds of last scan
@@ -396,7 +461,7 @@ def auto_system_scan():
 
 
 # ---------------------------------------------------------------------------
-# SECTION 5 — NEW API ROUTES (additive, no conflicts with existing routes)
+# SECTION 5 — NEW API ROUTES
 # ---------------------------------------------------------------------------
 
 @app.route('/api/activity-check', methods=['POST'])
@@ -473,8 +538,6 @@ def activity_check():
 
 # ---------------------------------------------------------------------------
 # STATIC FILE INSPECTION ENGINE
-# Safely inspects file magic bytes, extensions, scripts, macros, entropy, and
-# strings in-memory without executing anything on the server or client.
 # ---------------------------------------------------------------------------
 
 def calculate_entropy(data: bytes) -> float:
@@ -529,15 +592,13 @@ def extract_static_telemetry(filename: str, file_bytes: bytes) -> dict:
     elif file_bytes.startswith(b"<?xml"):
         detected_type = "XML Document"
 
-    # 2. Extension check
+    # 2. Check Extension spoofing
     lower_name = filename.lower()
     ext = os.path.splitext(lower_name)[1]
     parts = lower_name.split(".")
-    
-    suspicious_exts = {".exe", ".bat", ".cmd", ".cpl", ".dll", ".hta", ".img", ".iso", ".jar", ".js", ".pif", ".ps1", ".scr", ".vbs", ".wsf"}
+    suspicious_exts = {".bat", ".cmd", ".cpl", ".dll", ".hta", ".img", ".iso", ".jar", ".js", ".pif", ".ps1", ".scr", ".vbs", ".wsf", ".exe"}
     
     double_ext_warning = False
-    # Check for double extension spoofing (e.g., invoice.exe.pdf)
     if len(parts) > 2 and f".{parts[-2]}" in suspicious_exts:
         double_ext_warning = True
 
@@ -753,7 +814,7 @@ def logs_page():
 
 
 # ---------------------------------------------------------------------------
-# SECTION 6 — PASSWORD MANAGER ROUTES (NEW)
+# SECTION 6 — PASSWORD MANAGER ROUTES
 # ---------------------------------------------------------------------------
 
 # Secure Vault Setup
@@ -830,7 +891,7 @@ def check_password_leak():
     prefix, suffix = sha1_pwd[:5], sha1_pwd[5:]
     
     try:
-        res = requests.get(f"[https://api.pwnedpasswords.com/range/](https://api.pwnedpasswords.com/range/){prefix}", headers={"User-Agent": "SentinelLearn-App"})
+        res = requests.get(f"https://api.pwnedpasswords.com/range/{prefix}", headers={"User-Agent": "SentinelLearn-App"})
         if res.status_code == 200:
             hashes = (line.split(':') for line in res.text.splitlines())
             for h, count in hashes:

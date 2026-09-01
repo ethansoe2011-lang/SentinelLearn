@@ -3,274 +3,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Flashcards & Quizzes | SentinelLearn</title>
+    <title>Dynamic Quizzes | SentinelLearn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-gradient: linear-gradient(to right, #000000, #2b2b2b);
-            --glow-warning: #9b59b6;
-            --glow-primary: #4facfe;
-            --panel-bg: rgba(15, 15, 15, 0.75);
+            --bg-dark: #050505;
+            --bg-gradient: radial-gradient(circle at top, #111 0%, #000 100%);
+            --glow-primary: #bc13fe;
+            --panel-bg: rgba(20, 20, 20, 0.6);
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
-            --text-muted: #888888;
+            --text-muted: #a0a0a0;
+            --glass-blur: blur(16px);
         }
 
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            margin: 0;
-            padding: 0;
-            background: var(--bg-gradient); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 0;
+            background: var(--bg-dark);
+            background-image: var(--bg-gradient);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(var(--border-light) 1px, transparent 1px), linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0.2; z-index: -1; pointer-events: none;
         }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 40px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-light);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
-            z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(5, 5, 5, 0.65);
+            backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-light); z-index: 10;
         }
-        header h1 { margin: 0; font-size: 1.4rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 10px;}
-        header h1::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--glow-warning); box-shadow: 0 0 10px var(--glow-warning); }
-        .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 25px; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; }
-        .nav-links a:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
-
-        .content-wrapper { padding: 40px; display: flex; justify-content: center; flex: 1; }
-
-        .card { 
-            background: var(--panel-bg); 
-            padding: 40px; 
-            border-radius: 20px; 
-            border: 1px solid var(--border-light);
-            max-width: 900px; 
-            width: 100%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-        }
-        .card h1 { margin-top: 0; font-weight: 600; font-size: 2rem; text-align: center;}
-        p.subtitle { text-align: center; font-size: 1.05rem; color: var(--text-muted); margin-bottom: 40px; }
+        header h1 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 12px;}
+        header h1::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--glow-primary); box-shadow: 0 0 15px var(--glow-primary); }
         
-        .input-group { display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; }
-        .input-group input {
-            flex: 1;
-            padding: 16px 20px;
-            background-color: rgba(0,0,0,0.4);
-            color: #fff;
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            font-size: 1.05rem;
-            min-width: 250px;
-            transition: all 0.3s;
-            outline: none;
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; position: relative; }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a::after { content: ''; position: absolute; left: 0; bottom: -5px; width: 0%; height: 2px; background: var(--glow-primary); transition: width 0.3s ease; }
+        .nav-links a:hover::after { width: 100%; box-shadow: 0 0 8px var(--glow-primary); }
+
+        .container {
+            flex: 1; padding: 40px 50px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box;
         }
-        .input-group input:focus { border-color: var(--glow-warning); box-shadow: 0 0 15px rgba(155, 89, 182, 0.2); }
+
+        .panel-card { 
+            background: var(--panel-bg); padding: 40px 50px; border-radius: 24px; 
+            border: 1px solid var(--border-light); box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            backdrop-filter: var(--glass-blur); margin-bottom: 30px;
+        }
+
+        h2 { margin-top: 0; color: #fff; font-size: 1.8rem; font-weight: 600; }
+        p.subtitle { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6;}
+
+        .input-group { display: flex; gap: 15px; margin-bottom: 20px; }
+        input[type="text"] {
+            flex: 1; padding: 18px 25px; background-color: rgba(0,0,0,0.4); color: #fff;
+            border: 1px solid var(--border-light); border-radius: 12px; font-size: 1.1rem;
+            outline: none; transition: all 0.3s ease;
+        }
+        input[type="text"]:focus { border-color: var(--glow-primary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.2); }
         
         .btn {
-            padding: 16px 30px;
-            background-color: transparent;
-            color: var(--glow-warning);
-            border: 1px solid var(--glow-warning);
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.05rem;
-            font-weight: 600;
-            transition: all 0.3s;
-            box-shadow: 0 0 10px rgba(155, 89, 182, 0.1);
+            padding: 16px 30px; background-color: transparent; color: var(--glow-primary);
+            border: 1px solid var(--glow-primary); border-radius: 12px; cursor: pointer;
+            font-size: 1.05rem; font-weight: 600; transition: all 0.3s;
         }
         .btn:hover:not(:disabled) { 
-            background-color: rgba(155, 89, 182, 0.1);
-            box-shadow: 0 0 20px rgba(155, 89, 182, 0.4);
-            text-shadow: 0 0 8px var(--glow-warning);
+            background-color: rgba(188, 19, 254, 0.1); box-shadow: 0 0 25px rgba(188, 19, 254, 0.4);
+            text-shadow: 0 0 8px var(--glow-primary); transform: translateY(-2px);
         }
-        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; }
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; transform: none; box-shadow: none;}
+        .btn-full { width: 100%; margin-top: 30px; }
 
-        .flashcards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin-top: 25px; }
-        
-        .flashcard { perspective: 1200px; height: 240px; width: 100%; cursor: pointer; }
-        .flashcard-inner {
-            position: relative; width: 100%; height: 100%; text-align: center;
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-            transform-style: preserve-3d;
-        }
+        /* Flashcards */
+        .flashcards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .flashcard { perspective: 1000px; height: 200px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
         .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
-        
-        .flashcard-front, .flashcard-back {
-            position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden;
-            display: flex; align-items: center; justify-content: center; padding: 25px; box-sizing: border-box;
-            border-radius: 16px; border: 1px solid var(--border-light);
-            background: rgba(0,0,0,0.5); box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            transition: all 0.3s;
+        .flashcard-front, .flashcard-back { 
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
+            display: flex; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box;
+            border-radius: 16px; border: 1px solid var(--border-light); background: rgba(10,10,10,0.8);
+            font-size: 1.1rem; line-height: 1.5;
         }
-        .flashcard:hover .flashcard-front, .flashcard:hover .flashcard-back { border-color: rgba(155, 89, 182, 0.5); box-shadow: 0 0 20px rgba(155, 89, 182, 0.2); }
-        
-        .flashcard-front h3 { margin: 0; font-size: 1.25rem; font-weight: 500; color: var(--glow-primary); }
-        .flashcard-back { transform: rotateY(180deg); background: rgba(15,15,15,0.9); }
-        .flashcard-back p { margin: 0; font-size: 1.05rem; line-height: 1.6; color: #eee; }
+        .flashcard-back { transform: rotateY(180deg); color: var(--glow-primary); border-color: var(--glow-primary); background: rgba(188, 19, 254, 0.05); }
 
-        .quiz-section { margin-top: 60px; background: rgba(0,0,0,0.3); padding: 35px; border-radius: 20px; border: 1px solid var(--border-light); }
-        .quiz-section h2 { color: #fff; margin-top: 0; font-weight: 600; font-size: 1.6rem; margin-bottom: 25px; border-bottom: 1px solid var(--border-light); padding-bottom: 15px;}
-        
-        .quiz-option {
-            display: block; margin: 15px 0; padding: 18px 20px; background: rgba(20,20,20,0.8);
-            cursor: pointer; border-radius: 12px; border: 1px solid var(--border-light);
-            font-size: 1.1rem; transition: all 0.2s;
+        /* Quiz Layout */
+        .question-block { margin-bottom: 30px; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .question-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 15px; color: #fff; }
+        .mcq-option { display: block; margin-bottom: 12px; cursor: pointer; color: #ddd; padding: 12px; border-radius: 8px; border: 1px solid transparent; transition: all 0.2s;}
+        .mcq-option:hover { background: rgba(255,255,255,0.05); border-color: var(--border-light); }
+        .mcq-option input { margin-right: 10px; }
+        textarea.frq-input {
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.5); color: #fff;
+            border: 1px solid var(--border-light); border-radius: 12px; font-family: inherit;
+            resize: vertical; min-height: 100px; box-sizing: border-box; outline: none;
         }
-        .quiz-option:hover { border-color: var(--glow-warning); background: rgba(155, 89, 182, 0.05); transform: translateX(5px); }
-        
-        /* The JS sets inline styles, but we ensure transitions are smooth */
-        #quizFeedback {
-            margin-top: 25px; padding: 20px; border-radius: 12px; font-weight: 500; display: none; line-height: 1.7; font-size: 1.05rem; transition: all 0.3s;
+        textarea.frq-input:focus { border-color: var(--glow-primary); box-shadow: inset 0 0 10px rgba(188, 19, 254, 0.1); }
+
+        /* Results Blurring System */
+        .results-wrapper { position: relative; margin-top: 40px; display: none; }
+        .results-content {
+            filter: blur(15px); transition: filter 1s ease;
+            background: rgba(10,10,10,0.9); padding: 40px; border-radius: 24px;
+            border: 1px solid var(--glow-primary); box-shadow: 0 0 30px rgba(188, 19, 254, 0.15);
+            pointer-events: none; user-select: none;
         }
+        .results-content.revealed { filter: blur(0); pointer-events: auto; user-select: auto; }
+        
+        .reveal-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10; background: rgba(0,0,0,0.2); border-radius: 24px; transition: opacity 0.5s ease;
+        }
+        .reveal-overlay.hidden { opacity: 0; pointer-events: none; }
+        
+        /* Stats Styling */
+        .stat-box { margin-bottom: 25px; }
+        .stat-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 500; color: #ddd; }
+        .stat-bar-container { background: rgba(255,255,255,0.1); border-radius: 50px; height: 14px; width: 100%; overflow: hidden; }
+        .stat-bar { background: var(--glow-primary); height: 100%; width: 0%; transition: width 1.5s ease-in-out; box-shadow: 0 0 10px var(--glow-primary); }
+        .stat-bar.green { background: #39ff14; box-shadow: 0 0 10px #39ff14;}
+        
+        .feedback-section { margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 25px; }
+        .feedback-section h3 { color: var(--glow-primary); margin-top: 0; }
+        .feedback-section ul { color: #ccc; line-height: 1.7; padding-left: 20px;}
+        .warning-box { background: rgba(255, 7, 58, 0.1); border: 1px solid #ff073a; padding: 20px; border-radius: 12px; margin-top: 20px; color: #ff073a; font-weight: 500;}
+
+        /* Loader */
+        .loader { display: none; text-align: center; color: var(--glow-primary); font-weight: 600; margin: 20px 0; }
+        .spinner { display: inline-block; animation: spin 1s linear infinite; margin-left: 10px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <header>
-        <h1>Knowledge Check</h1>
+        <h1>Sentinel Quizzes</h1>
         <div class="nav-links">
+            <a href="/">Home</a>
             <a href="/dashboard">Dashboard</a>
             <a href="/password-manager">Password Vault</a>
             <a href="/education">Education Hub</a>
         </div>
     </header>
 
-    <div class="content-wrapper">
-        <div class="card">
-            <h1>Dynamic Study Sets</h1>
-            <p class="subtitle">Enter a cybersecurity topic below. Sentinel AI will dynamically construct a custom study set and a scenario-based quiz to test your comprehension.</p>
+    <div class="container">
+        <div class="panel-card">
+            <h2>Dynamic Study Generator</h2>
+            <p class="subtitle">Enter any cybersecurity or infosec topic. The Sentinel AI will instantly synthesize dynamic flashcards, multiple-choice questions, and Free Response Questions (FRQs) for you to test your skills.</p>
             
             <div class="input-group">
-                <input type="text" id="topicInput" placeholder="e.g., Ransomware, Phishing, Passwords, Public Wi-Fi" autocomplete="off">
+                <input type="text" id="topicInput" placeholder="E.g., Social Engineering, Ransomware propagation, Network topology...">
                 <button id="generateBtn" class="btn">Generate Study Set</button>
             </div>
+            <div id="loadingIndicator" class="loader">Synthesizing dynamic quiz... <span class="spinner">⏳</span></div>
+        </div>
 
-            <div id="loadingIndicator" style="display: none; color: var(--glow-warning); text-align: center; margin: 30px 0; font-size: 1.1rem; text-shadow: 0 0 8px rgba(155, 89, 182, 0.4);">
-                Sentinel AI is curating your study materials...
+        <div id="quizContainer" style="display: none;">
+            <div class="panel-card">
+                <h2>Flashcards</h2>
+                <p class="subtitle">Click a card to flip and reveal the answer.</p>
+                <div id="flashcardsDisplay" class="flashcards-grid"></div>
             </div>
 
-            <div id="studyContent" style="display: none;">
-                <h2 style="color: #fff; margin-bottom: 10px; font-weight: 600; font-size: 1.5rem;">Interactive Flashcards</h2>
-                <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0;">Click on a card to flip it and reveal the answer.</p>
-                
-                <div class="flashcards-grid" id="flashcardsContainer"></div>
+            <div class="panel-card">
+                <h2>Knowledge Test</h2>
+                <p class="subtitle">Answer the MCQs and type short paragraph answers for the FRQs. The AI will grade your responses.</p>
+                <div id="questionsDisplay"></div>
+                <button id="submitQuizBtn" class="btn btn-full">Submit & Grade Quiz</button>
+                <div id="gradingIndicator" class="loader">Evaluating your responses... <span class="spinner">⏳</span></div>
+            </div>
+        </div>
 
-                <div class="quiz-section">
-                    <h2>Scenario Quiz</h2>
-                    <div id="quizContainer"></div>
-                    <div id="quizFeedback"></div>
+        <!-- Blurred Results Section -->
+        <div id="resultsWrapper" class="results-wrapper">
+            <div id="revealOverlay" class="reveal-overlay">
+                <button id="revealBtn" class="btn" style="background: rgba(0,0,0,0.8); padding: 20px 40px; font-size: 1.2rem;">👁️ Reveal My Results</button>
+            </div>
+            
+            <div id="resultsContent" class="results-content">
+                <h2>Quiz Analytics & Diagnostics</h2>
+                
+                <div class="stat-box">
+                    <div class="stat-label"><span>Multiple Choice Score</span> <span id="mcqScoreLabel">0%</span></div>
+                    <div class="stat-bar-container"><div id="mcqStatBar" class="stat-bar green"></div></div>
+                </div>
+
+                <div id="frqStatsDisplay"></div>
+
+                <div class="feedback-section">
+                    <h3>Overall Assessment</h3>
+                    <p id="overviewText" style="color: #ccc; line-height: 1.6;"></p>
+                    
+                    <h3>Focus Areas For Next Time</h3>
+                    <ul id="focusList"></ul>
+
+                    <div class="warning-box">
+                        <strong>⚠️ Browsing Warning:</strong> <span id="safetyWarningText"></span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const generateBtn = document.getElementById('generateBtn');
-        const topicInput = document.getElementById('topicInput');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const studyContent = document.getElementById('studyContent');
-        const flashcardsContainer = document.getElementById('flashcardsContainer');
-        const quizContainer = document.getElementById('quizContainer');
-        const quizFeedback = document.getElementById('quizFeedback');
+        let currentQuizData = null;
 
-        let currentQuizAnswer = '';
-        let currentQuizExplanation = '';
-
-        generateBtn.addEventListener('click', async () => {
-            const topic = topicInput.value.trim() || 'General Cybersecurity';
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) return;
             
-            studyContent.style.display = 'none';
-            loadingIndicator.style.display = 'block';
-            generateBtn.disabled = true;
-            quizFeedback.style.display = 'none';
-
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('resultsWrapper').style.display = 'none';
+            
             try {
                 const res = await fetch('/api/generate-quiz', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ topic })
                 });
-                
                 const json = await res.json();
                 
-                if (json.status === 'success' && json.data) {
-                    renderFlashcards(json.data.flashcards);
-                    renderQuiz(json.data.quiz);
-                    studyContent.style.display = 'block';
+                if (json.status === 'success') {
+                    currentQuizData = json.data;
+                    renderFlashcards(currentQuizData.flashcards);
+                    renderQuestions(currentQuizData.mcqs, currentQuizData.frqs);
+                    document.getElementById('quizContainer').style.display = 'block';
                 } else {
-                    alert('Error generating content: ' + (json.message || 'Invalid format returned.'));
+                    alert('Error generating quiz: ' + json.message);
                 }
-            } catch (e) {
-                alert('Connection error communicating with Sentinel AI.');
+            } catch(e) {
+                alert('Connection error.');
             } finally {
-                loadingIndicator.style.display = 'none';
-                generateBtn.disabled = false;
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('loadingIndicator').style.display = 'none';
             }
         });
 
-        function renderFlashcards(cards) {
-            flashcardsContainer.innerHTML = '';
-            cards.forEach(card => {
-                const fc = document.createElement('div');
-                fc.className = 'flashcard';
-                fc.innerHTML = `
+        function renderFlashcards(flashcards) {
+            const container = document.getElementById('flashcardsDisplay');
+            container.innerHTML = '';
+            flashcards.forEach(fc => {
+                const card = document.createElement('div');
+                card.className = 'flashcard';
+                card.innerHTML = `
                     <div class="flashcard-inner">
-                        <div class="flashcard-front"><h3>${card.front}</h3></div>
-                        <div class="flashcard-back"><p>${card.back}</p></div>
+                        <div class="flashcard-front">${fc.front}</div>
+                        <div class="flashcard-back">${fc.back}</div>
                     </div>
                 `;
-                fc.addEventListener('click', () => fc.classList.toggle('flipped'));
-                flashcardsContainer.appendChild(fc);
+                card.addEventListener('click', () => card.classList.toggle('flipped'));
+                container.appendChild(card);
             });
         }
 
-        function renderQuiz(quiz) {
-            currentQuizAnswer = quiz.answer;
-            currentQuizExplanation = quiz.explanation;
+        function renderQuestions(mcqs, frqs) {
+            const container = document.getElementById('questionsDisplay');
+            container.innerHTML = '';
             
-            let html = `<h3 style="margin-top: 0; margin-bottom: 20px; line-height: 1.5; color: #eaeaea; font-weight: 500; font-size: 1.2rem;">${quiz.question}</h3>`;
-            quiz.options.forEach(opt => {
-                const safeOpt = opt.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                html += `<div class="quiz-option" onclick="checkAnswer(this, '${safeOpt}')">${opt}</div>`;
+            // Render MCQs
+            mcqs.forEach((mcq, idx) => {
+                let optionsHtml = '';
+                mcq.options.forEach((opt, oIdx) => {
+                    optionsHtml += `
+                        <label class="mcq-option">
+                            <input type="radio" name="mcq_${idx}" value="${opt}"> ${opt}
+                        </label>
+                    `;
+                });
+                container.innerHTML += `
+                    <div class="question-block" data-type="mcq" data-idx="${idx}">
+                        <div class="question-title">Q${idx + 1}: ${mcq.question}</div>
+                        ${optionsHtml}
+                    </div>
+                `;
             });
-            quizContainer.innerHTML = html;
+
+            // Render FRQs
+            frqs.forEach((frq, idx) => {
+                container.innerHTML += `
+                    <div class="question-block frq-block" data-question="${frq.question}">
+                        <div class="question-title">FRQ ${idx + 1}: ${frq.question}</div>
+                        <textarea class="frq-input" placeholder="Type your answer here..."></textarea>
+                    </div>
+                `;
+            });
         }
 
-        window.checkAnswer = function(element, selected) {
-            document.querySelectorAll('.quiz-option').forEach(el => {
-                el.style.pointerEvents = 'none';
-                if (el.innerText.trim() === currentQuizAnswer.trim()) {
-                    el.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
-                    el.style.borderColor = '#2ecc71';
-                    el.style.boxShadow = '0 0 10px rgba(46, 204, 113, 0.3)';
+        document.getElementById('submitQuizBtn').addEventListener('click', async () => {
+            const topic = document.getElementById('topicInput').value;
+            let mcqScore = 0;
+            const mcqTotal = currentQuizData.mcqs.length;
+            
+            // Calculate MCQ Score locally
+            currentQuizData.mcqs.forEach((mcq, idx) => {
+                const selected = document.querySelector(`input[name="mcq_${idx}"]:checked`);
+                if (selected && selected.value === mcq.answer) {
+                    mcqScore++;
                 }
             });
-            
-            if (selected.trim() === currentQuizAnswer.trim()) {
-                element.style.backgroundColor = 'rgba(46, 204, 113, 0.2)';
-                element.style.borderColor = '#2ecc71';
-                element.style.boxShadow = '0 0 15px rgba(46, 204, 113, 0.4)';
-                quizFeedback.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
-                quizFeedback.style.border = '1px solid #2ecc71';
-                quizFeedback.style.color = '#fff';
-                quizFeedback.style.boxShadow = '0 0 15px rgba(46, 204, 113, 0.2)';
-                quizFeedback.innerHTML = `<strong style="color:#2ecc71; text-shadow:0 0 8px #2ecc71;">Correct!</strong> <br><br>${currentQuizExplanation}`;
-            } else {
-                element.style.backgroundColor = 'rgba(231, 76, 60, 0.2)';
-                element.style.borderColor = '#e74c3c';
-                element.style.boxShadow = '0 0 15px rgba(231, 76, 60, 0.4)';
-                quizFeedback.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
-                quizFeedback.style.border = '1px solid #e74c3c';
-                quizFeedback.style.color = '#fff';
-                quizFeedback.style.boxShadow = '0 0 15px rgba(231, 76, 60, 0.2)';
-                quizFeedback.innerHTML = `<strong style="color:#e74c3c; text-shadow:0 0 8px #e74c3c;">Incorrect.</strong> <br><br>${currentQuizExplanation}`;
+
+            // Gather FRQ Answers
+            const frqAnswers = [];
+            document.querySelectorAll('.frq-block').forEach(block => {
+                frqAnswers.push({
+                    question: block.getAttribute('data-question'),
+                    user_answer: block.querySelector('textarea').value
+                });
+            });
+
+            document.getElementById('submitQuizBtn').disabled = true;
+            document.getElementById('gradingIndicator').style.display = 'block';
+
+            try {
+                const res = await fetch('/api/grade-quiz', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, mcq_score: mcqScore, mcq_total: mcqTotal, frq_answers: frqAnswers })
+                });
+                const json = await res.json();
+                
+                if (json.status === 'success') {
+                    setupResultsOverlay(mcqScore, mcqTotal, json.data);
+                } else {
+                    alert('Grading error: ' + json.message);
+                }
+            } catch(e) {
+                alert('Connection error during grading.');
+            } finally {
+                document.getElementById('submitQuizBtn').disabled = false;
+                document.getElementById('gradingIndicator').style.display = 'none';
             }
-            quizFeedback.style.display = 'block';
+        });
+
+        function setupResultsOverlay(mcqScore, mcqTotal, gradingData) {
+            document.getElementById('resultsWrapper').style.display = 'block';
+            document.getElementById('resultsContent').classList.remove('revealed');
+            document.getElementById('revealOverlay').classList.remove('hidden');
+            
+            // Prepare Data visually but don't animate bars until revealed
+            const mcqPercent = mcqTotal > 0 ? Math.round((mcqScore / mcqTotal) * 100) : 0;
+            document.getElementById('mcqScoreLabel').innerText = `${mcqPercent}% (${mcqScore}/${mcqTotal})`;
+            document.getElementById('mcqStatBar').style.width = '0%'; // Reset for animation later
+            
+            // FRQ Stats
+            const frqContainer = document.getElementById('frqStatsDisplay');
+            frqContainer.innerHTML = '';
+            gradingData.frq_evaluations.forEach((eval, i) => {
+                frqContainer.innerHTML += `
+                    <div class="stat-box">
+                        <div class="stat-label"><span>FRQ ${i+1} Score</span> <span>${eval.score}/10</span></div>
+                        <div class="stat-bar-container"><div id="frqBar_${i}" class="stat-bar" style="width: 0%;"></div></div>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-top: 8px;"><em>Feedback:</em> ${eval.feedback}</p>
+                    </div>
+                `;
+            });
+
+            // Text content
+            document.getElementById('overviewText').innerText = gradingData.overview;
+            document.getElementById('safetyWarningText').innerText = gradingData.safety_warning;
+            
+            const focusList = document.getElementById('focusList');
+            focusList.innerHTML = '';
+            gradingData.focus_areas.forEach(fa => {
+                const li = document.createElement('li');
+                li.innerText = fa;
+                focusList.appendChild(li);
+            });
+
+            // Assign reveal event
+            document.getElementById('revealBtn').onclick = () => {
+                document.getElementById('revealOverlay').classList.add('hidden');
+                document.getElementById('resultsContent').classList.add('revealed');
+                
+                // Animate bars
+                setTimeout(() => {
+                    document.getElementById('mcqStatBar').style.width = `${mcqPercent}%`;
+                    gradingData.frq_evaluations.forEach((eval, i) => {
+                        const w = Math.round((eval.score / 10) * 100);
+                        document.getElementById(`frqBar_${i}`).style.width = `${w}%`;
+                    });
+                }, 300); // Slight delay for smoothness
+                
+                // Scroll to results
+                document.getElementById('resultsWrapper').scrollIntoView({ behavior: 'smooth' });
+            };
         }
     </script>
 </body>
