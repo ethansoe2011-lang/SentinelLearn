@@ -10,6 +10,7 @@
             --bg-dark: #050505;
             --bg-gradient: radial-gradient(circle at top, #111 0%, #000 100%);
             --glow-primary: #bc13fe;
+            --neon-primary: #00f3ff;
             --panel-bg: rgba(20, 20, 20, 0.6);
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
@@ -42,11 +43,29 @@
         header h1 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 12px;}
         header h1::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--glow-primary); box-shadow: 0 0 15px var(--glow-primary); }
         
+        .header-right { display: flex; align-items: center; gap: 30px; }
         .nav-links { display: flex; gap: 30px; }
         .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: all 0.3s; position: relative; }
         .nav-links a:hover { color: #fff; }
         .nav-links a::after { content: ''; position: absolute; left: 0; bottom: -5px; width: 0%; height: 2px; background: var(--glow-primary); transition: width 0.3s ease; }
         .nav-links a:hover::after { width: 100%; box-shadow: 0 0 8px var(--glow-primary); }
+
+        /* Auth Widget */
+        #auth-widget { display: flex; align-items: center; gap: 14px; }
+        .auth-sign-in-btn { padding: 7px 18px; background: transparent; color: var(--neon-primary); border: 1px solid var(--neon-primary); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s; position: relative; }
+        .auth-sign-in-btn:hover { background: rgba(0,243,255,0.1); box-shadow: 0 0 15px rgba(0,243,255,0.3); }
+        .auth-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(12,12,12,0.97); border: 1px solid var(--border-light); border-radius: 14px; padding: 10px; min-width: 220px; display: none; flex-direction: column; gap: 6px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 200; }
+        .auth-dropdown.open { display: flex; }
+        .auth-provider-btn { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.03); color: #eee; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.25s; cursor: pointer; }
+        .auth-provider-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #fff; }
+        .auth-dropdown-label { padding: 6px 16px 4px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .auth-user-info { display: flex; align-items: center; gap: 10px; }
+        .auth-avatar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); object-fit: cover; }
+        .auth-avatar-placeholder { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); background: rgba(0,243,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .auth-name { font-size: 0.85rem; font-weight: 600; color: #fff; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .auth-sign-out-btn { padding: 6px 14px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.3s; text-decoration: none; }
+        .auth-sign-out-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+        .auth-sign-in-wrapper { position: relative; }
 
         .container {
             flex: 1; padding: 40px 50px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box;
@@ -140,16 +159,33 @@
         .loader { display: none; text-align: center; color: var(--glow-primary); font-weight: 600; margin: 20px 0; }
         .spinner { display: inline-block; animation: spin 1s linear infinite; margin-left: 10px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* History List */
+        .history-item {
+            background: rgba(0,0,0,0.4); border: 1px solid var(--border-light);
+            border-radius: 14px; padding: 18px 22px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .history-topic { font-weight: 600; color: #fff; font-size: 1.05rem; }
+        .history-date { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+        .history-score {
+            font-size: 1.1rem; font-weight: 700; color: var(--glow-primary);
+            background: rgba(188, 19, 254, 0.1); border: 1px solid rgba(188, 19, 254, 0.3);
+            padding: 6px 14px; border-radius: 50px;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Sentinel Quizzes</h1>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/password-manager">Password Vault</a>
-            <a href="/education">Education Hub</a>
+        <div class="header-right">
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/password-manager">Password Vault</a>
+                <a href="/education">Education Hub</a>
+            </div>
+            <div id="auth-widget"><span style="color:#444;font-size:0.8rem;">...</span></div>
         </div>
     </header>
 
@@ -176,7 +212,7 @@
                 <h2>Knowledge Test</h2>
                 <p class="subtitle">Answer the MCQs and type short paragraph answers for the FRQs. The AI will grade your responses.</p>
                 <div id="questionsDisplay"></div>
-                <button id="submitQuizBtn" class="btn btn-full">Submit & Grade Quiz</button>
+                <button id="submitQuizBtn" class="btn btn-full">Submit &amp; Grade Quiz</button>
                 <div id="gradingIndicator" class="loader">Evaluating your responses... <span class="spinner">⏳</span></div>
             </div>
         </div>
@@ -188,7 +224,7 @@
             </div>
             
             <div id="resultsContent" class="results-content">
-                <h2>Quiz Analytics & Diagnostics</h2>
+                <h2>Quiz Analytics &amp; Diagnostics</h2>
                 
                 <div class="stat-box">
                     <div class="stat-label"><span>Multiple Choice Score</span> <span id="mcqScoreLabel">0%</span></div>
@@ -210,10 +246,24 @@
                 </div>
             </div>
         </div>
+
+        <!-- Past Results Section (Logged In) -->
+        <div id="quizHistoryPanel" class="panel-card" style="display: none; margin-top: 30px;">
+            <h2>Your Saved Quiz History</h2>
+            <p class="subtitle">Saved records of your dynamic quizzes and performance analytics.</p>
+            <div id="quizHistoryList"></div>
+        </div>
     </div>
 
     <script>
         let currentQuizData = null;
+        let currentUser = null;
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
 
         document.getElementById('generateBtn').addEventListener('click', async () => {
             const topic = document.getElementById('topicInput').value.trim();
@@ -256,8 +306,8 @@
                 card.className = 'flashcard';
                 card.innerHTML = `
                     <div class="flashcard-inner">
-                        <div class="flashcard-front">${fc.front}</div>
-                        <div class="flashcard-back">${fc.back}</div>
+                        <div class="flashcard-front">${escapeHtml(fc.front)}</div>
+                        <div class="flashcard-back">${escapeHtml(fc.back)}</div>
                     </div>
                 `;
                 card.addEventListener('click', () => card.classList.toggle('flipped'));
@@ -275,13 +325,13 @@
                 mcq.options.forEach((opt, oIdx) => {
                     optionsHtml += `
                         <label class="mcq-option">
-                            <input type="radio" name="mcq_${idx}" value="${opt}"> ${opt}
+                            <input type="radio" name="mcq_${idx}" value="${escapeHtml(opt)}"> ${escapeHtml(opt)}
                         </label>
                     `;
                 });
                 container.innerHTML += `
                     <div class="question-block" data-type="mcq" data-idx="${idx}">
-                        <div class="question-title">Q${idx + 1}: ${mcq.question}</div>
+                        <div class="question-title">Q${idx + 1}: ${escapeHtml(mcq.question)}</div>
                         ${optionsHtml}
                     </div>
                 `;
@@ -290,8 +340,8 @@
             // Render FRQs
             frqs.forEach((frq, idx) => {
                 container.innerHTML += `
-                    <div class="question-block frq-block" data-question="${frq.question}">
-                        <div class="question-title">FRQ ${idx + 1}: ${frq.question}</div>
+                    <div class="question-block frq-block" data-question="${escapeHtml(frq.question)}">
+                        <div class="question-title">FRQ ${idx + 1}: ${escapeHtml(frq.question)}</div>
                         <textarea class="frq-input" placeholder="Type your answer here..."></textarea>
                     </div>
                 `;
@@ -299,7 +349,7 @@
         }
 
         document.getElementById('submitQuizBtn').addEventListener('click', async () => {
-            const topic = document.getElementById('topicInput').value;
+            const topic = document.getElementById('topicInput').value || 'Cybersecurity';
             let mcqScore = 0;
             const mcqTotal = currentQuizData.mcqs.length;
             
@@ -333,6 +383,23 @@
                 
                 if (json.status === 'success') {
                     setupResultsOverlay(mcqScore, mcqTotal, json.data);
+                    
+                    // Save history if logged in
+                    if (currentUser) {
+                        try {
+                            await fetch('/api/quiz/history', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    topic: topic,
+                                    mcq_score: mcqScore,
+                                    mcq_total: mcqTotal,
+                                    overview: json.data.overview || ''
+                                })
+                            });
+                            loadQuizHistory();
+                        } catch(err) {}
+                    }
                 } else {
                     alert('Grading error: ' + json.message);
                 }
@@ -362,7 +429,7 @@
                     <div class="stat-box">
                         <div class="stat-label"><span>FRQ ${i+1} Score</span> <span>${eval.score}/10</span></div>
                         <div class="stat-bar-container"><div id="frqBar_${i}" class="stat-bar" style="width: 0%;"></div></div>
-                        <p style="font-size: 0.9rem; color: #aaa; margin-top: 8px;"><em>Feedback:</em> ${eval.feedback}</p>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-top: 8px;"><em>Feedback:</em> ${escapeHtml(eval.feedback)}</p>
                     </div>
                 `;
             });
@@ -391,12 +458,71 @@
                         const w = Math.round((eval.score / 10) * 100);
                         document.getElementById(`frqBar_${i}`).style.width = `${w}%`;
                     });
-                }, 300); // Slight delay for smoothness
+                }, 300);
                 
                 // Scroll to results
                 document.getElementById('resultsWrapper').scrollIntoView({ behavior: 'smooth' });
             };
         }
+
+        async function loadQuizHistory() {
+            try {
+                const res = await fetch('/api/quiz/history');
+                const data = await res.json();
+                if (data.status === 'success' && data.history && data.history.length > 0) {
+                    const panel = document.getElementById('quizHistoryPanel');
+                    const list = document.getElementById('quizHistoryList');
+                    panel.style.display = 'block';
+                    list.innerHTML = data.history.map(item => {
+                        const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleDateString() + ' ' + new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                        return `
+                            <div class="history-item">
+                                <div>
+                                    <div class="history-topic">${escapeHtml(item.topic)}</div>
+                                    <div class="history-date">${escapeHtml(dateStr)} &bull; ${escapeHtml(item.overview || '')}</div>
+                                </div>
+                                <div class="history-score">${item.mcq_score}/${item.mcq_total} MCQ</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch(e) {}
+        }
+
+        // ── Auth Widget ──
+        async function initAuthWidget() {
+            const widget = document.getElementById('auth-widget');
+            try {
+                const res = await fetch('/api/auth/me');
+                const data = await res.json();
+                if (data.logged_in && data.user) {
+                    currentUser = data.user;
+                    const user = data.user;
+                    const avatarHtml = user.picture
+                        ? `<img class="auth-avatar" src="${escapeHtml(user.picture)}" alt="avatar">`
+                        : `<div class="auth-avatar-placeholder">👤</div>`;
+                    widget.innerHTML = `<div class="auth-user-info">${avatarHtml}<span class="auth-name">${escapeHtml(user.name)}</span><a href="/auth/logout" class="auth-sign-out-btn">Sign Out</a></div>`;
+                    loadQuizHistory();
+                } else {
+                    currentUser = null;
+                    widget.innerHTML = `
+                        <div class="auth-sign-in-wrapper">
+                            <button class="auth-sign-in-btn" id="signInBtn">Sign In ▾</button>
+                            <div class="auth-dropdown" id="authDropdown">
+                                <div class="auth-dropdown-label">Continue with</div>
+                                <a href="/auth/google" class="auth-provider-btn">🔵 Google</a>
+                                <a href="/auth/github" class="auth-provider-btn">⚫ GitHub</a>
+                            </div>
+                        </div>
+                    `;
+                    const btn = document.getElementById('signInBtn');
+                    const dd = document.getElementById('authDropdown');
+                    btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('open'); });
+                    document.addEventListener('click', () => dd.classList.remove('open'));
+                }
+            } catch(e) { widget.innerHTML = ''; }
+        }
+        initAuthWidget();
     </script>
 </body>
 </html>

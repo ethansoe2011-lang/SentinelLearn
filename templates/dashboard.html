@@ -11,6 +11,7 @@
             --neon-primary: #00f3ff;
             --neon-danger: #ff073a;
             --neon-safe: #39ff14;
+            --neon-warning: #ffaa00;
             --panel-bg: rgba(18, 18, 18, 0.75);
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
@@ -31,7 +32,6 @@
             overflow: hidden;
         }
 
-        /* Modern Glass Navigation */
         header {
             display: flex;
             justify-content: space-between;
@@ -55,6 +55,7 @@
             box-shadow: 0 0 12px var(--neon-primary), 0 0 20px var(--neon-primary); 
         }
 
+        .header-right { display: flex; align-items: center; gap: 30px; }
         .nav-links { display: flex; gap: 30px; }
         .nav-links a {
             color: var(--text-muted); text-decoration: none; font-weight: 500; 
@@ -66,6 +67,23 @@
             height: 2px; background: var(--neon-primary); transition: width 0.3s ease;
         }
         .nav-links a:hover::after { width: 100%; box-shadow: 0 0 8px var(--neon-primary); }
+
+        /* Auth Widget */
+        #auth-widget { display: flex; align-items: center; gap: 14px; }
+        .auth-sign-in-btn { padding: 7px 18px; background: transparent; color: var(--neon-primary); border: 1px solid var(--neon-primary); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .auth-sign-in-btn:hover { background: rgba(0,243,255,0.1); box-shadow: 0 0 15px rgba(0,243,255,0.3); }
+        .auth-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(12,12,12,0.97); border: 1px solid var(--border-light); border-radius: 14px; padding: 10px; min-width: 220px; display: none; flex-direction: column; gap: 6px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 200; }
+        .auth-dropdown.open { display: flex; }
+        .auth-provider-btn { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.03); color: #eee; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.25s; }
+        .auth-provider-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #fff; }
+        .auth-dropdown-label { padding: 6px 16px 4px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .auth-user-info { display: flex; align-items: center; gap: 10px; }
+        .auth-avatar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); object-fit: cover; }
+        .auth-avatar-placeholder { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); background: rgba(0,243,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .auth-name { font-size: 0.85rem; font-weight: 600; color: #fff; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .auth-sign-out-btn { padding: 6px 14px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.3s; text-decoration: none; }
+        .auth-sign-out-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+        .auth-sign-in-wrapper { position: relative; }
 
         .dashboard-content { 
             padding: 40px 50px; flex: 1; display: flex; flex-direction: column; min-height: 0; 
@@ -156,6 +174,7 @@
         }
         .badge.safe { background: rgba(57, 255, 20, 0.1); color: var(--neon-safe); border: 1px solid var(--neon-safe); box-shadow: 0 0 10px rgba(57, 255, 20, 0.3); }
         .badge.threat { background: rgba(255, 7, 58, 0.1); color: var(--neon-danger); border: 1px solid var(--neon-danger); box-shadow: 0 0 10px rgba(255, 7, 58, 0.3); }
+        .badge.suspicious { background: rgba(255, 170, 0, 0.1); color: var(--neon-warning); border: 1px solid var(--neon-warning); box-shadow: 0 0 10px rgba(255, 170, 0, 0.3); }
 
         #refreshLogs {
             background: rgba(255,255,255,0.05); border: 1px solid var(--border-light); 
@@ -171,6 +190,14 @@
             animation: slideDown 0.4s ease forwards;
         }
 
+        .risk-list {
+            margin-top: 15px;
+            padding-left: 20px;
+            color: var(--neon-warning);
+            font-size: 0.9rem;
+        }
+        .risk-list li { margin-bottom: 5px; }
+
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         ::-webkit-scrollbar { width: 6px; }
@@ -183,19 +210,22 @@
 
     <header>
         <h1>Sentinel Security Dashboard</h1>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/password-manager">Password Vault</a>
-            <a href="/education">Education Hub</a>
-            <a href="/quiz">Quizzes</a>
-            <a href="/logs">Full Logs</a>
+        <div class="header-right">
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/password-manager">Password Vault</a>
+                <a href="/education">Education Hub</a>
+                <a href="/quiz">Quizzes</a>
+                <a href="/logs">Full Logs</a>
+            </div>
+            <div id="auth-widget"><span style="color:#444;font-size:0.8rem;">...</span></div>
         </div>
     </header>
 
     <div class="dashboard-content">
         <div class="dashboard-grid">
             <div class="panel">
-                <h2>Manual Activity & URL Scanner</h2>
+                <h2>Manual Activity &amp; URL Scanner</h2>
                 <div class="form-group">
                     <label>Activity Type</label>
                     <select id="activityType">
@@ -222,6 +252,12 @@
     </div>
 
     <script>
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
         document.getElementById('scanBtn').addEventListener('click', async () => {
             const type = document.getElementById('activityType').value;
             const value = document.getElementById('activityValue').value;
@@ -243,12 +279,34 @@
                 
                 resDiv.style.display = 'block';
                 if (res.status === 'success') {
-                    const color = res.verdict === 'SAFE' ? 'var(--neon-safe)' : 'var(--neon-danger)';
-                    const glow = res.verdict === 'SAFE' ? 'rgba(57,255,20,0.15)' : 'rgba(255,7,58,0.15)';
+                    let color = 'var(--text-main)';
+                    let glow = 'transparent';
+                    
+                    if (res.verdict === 'SAFE') {
+                        color = 'var(--neon-safe)'; glow = 'rgba(57,255,20,0.15)';
+                    } else if (res.verdict === 'THREAT') {
+                        color = 'var(--neon-danger)'; glow = 'rgba(255,7,58,0.15)';
+                    } else {
+                        color = 'var(--neon-warning)'; glow = 'rgba(255,170,0,0.15)';
+                    }
+                    
                     resDiv.style.borderColor = color;
                     resDiv.style.backgroundColor = glow;
                     resDiv.style.boxShadow = `0 0 20px ${glow}`;
-                    resDiv.innerHTML = `<strong style="color: ${color}; font-size: 1.1rem; letter-spacing: 1px; text-shadow: 0 0 8px ${color}">${res.verdict}</strong><br><br><span style="color: #eee;">${res.analysis}</span>`;
+                    
+                    let htmlContent = `<strong style="color: ${color}; font-size: 1.1rem; letter-spacing: 1px; text-shadow: 0 0 8px ${color}">${res.verdict}</strong>`;
+                    if (res.confidence_score !== undefined) {
+                        htmlContent += `<span style="font-size:0.85rem; color:#aaa; margin-left: 10px;">Confidence: ${(res.confidence_score * 100).toFixed(0)}%</span>`;
+                    }
+                    htmlContent += `<br><br><span style="color: #eee;">${res.summary}</span>`;
+                    
+                    if (res.risk_factors && res.risk_factors.length > 0) {
+                        htmlContent += `<ul class="risk-list">`;
+                        res.risk_factors.forEach(rf => htmlContent += `<li>${rf}</li>`);
+                        htmlContent += `</ul>`;
+                    }
+                    
+                    resDiv.innerHTML = htmlContent;
                     fetchLogs(); 
                 } else {
                     resDiv.innerHTML = `Error: ${res.message}`;
@@ -277,7 +335,11 @@
                     
                     res.logs.forEach(log => {
                         const date = new Date(log.timestamp).toLocaleTimeString();
-                        const badgeClass = log.verdict === 'SAFE' ? 'safe' : 'threat';
+                        let badgeClass = 'suspicious';
+                        if (log.verdict === 'SAFE') badgeClass = 'safe';
+                        if (log.verdict === 'THREAT') badgeClass = 'threat';
+                        
+                        const summaryText = log.summary || log.analysis || log.input || "No summary provided.";
                         
                         container.innerHTML += `
                             <div class="log-entry">
@@ -285,7 +347,7 @@
                                     <span>[${date}] ${log.source}</span>
                                     <span class="badge ${badgeClass}">${log.verdict}</span>
                                 </div>
-                                <div class="log-analysis">${log.analysis || log.input}</div>
+                                <div class="log-analysis">${summaryText}</div>
                             </div>
                         `;
                     });
@@ -297,7 +359,39 @@
 
         document.getElementById('refreshLogs').addEventListener('click', fetchLogs);
         fetchLogs();
-        setInterval(fetchLogs, 15000); 
+        setInterval(fetchLogs, 15000);
+
+        // ── Auth Widget ──
+        async function initAuthWidget() {
+            const widget = document.getElementById('auth-widget');
+            try {
+                const res = await fetch('/api/auth/me');
+                const data = await res.json();
+                if (data.logged_in && data.user) {
+                    const user = data.user;
+                    const avatarHtml = user.picture
+                        ? `<img class="auth-avatar" src="${escapeHtml(user.picture)}" alt="avatar">`
+                        : `<div class="auth-avatar-placeholder">👤</div>`;
+                    widget.innerHTML = `<div class="auth-user-info">${avatarHtml}<span class="auth-name">${escapeHtml(user.name)}</span><a href="/auth/logout" class="auth-sign-out-btn">Sign Out</a></div>`;
+                } else {
+                    widget.innerHTML = `
+                        <div class="auth-sign-in-wrapper">
+                            <button class="auth-sign-in-btn" id="signInBtn">Sign In ▾</button>
+                            <div class="auth-dropdown" id="authDropdown">
+                                <div class="auth-dropdown-label">Continue with</div>
+                                <a href="/auth/google" class="auth-provider-btn">🔵 Google</a>
+                                <a href="/auth/github" class="auth-provider-btn">⚫ GitHub</a>
+                            </div>
+                        </div>
+                    `;
+                    const btn = document.getElementById('signInBtn');
+                    const dd = document.getElementById('authDropdown');
+                    btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('open'); });
+                    document.addEventListener('click', () => dd.classList.remove('open'));
+                }
+            } catch(e) { widget.innerHTML = ''; }
+        }
+        initAuthWidget();
     </script>
 </body>
 </html>
