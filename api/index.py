@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, Response, redirect, session, url_for
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
 import json
 import time
@@ -61,6 +62,9 @@ load_dotenv()
 # Initialize Flask and point it to the templates directory
 app = Flask(__name__, template_folder="../templates")
 
+# Apply ProxyFix so that url_for(..., _external=True) properly respects https behind Vercel/reverse proxies
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 # Secret key for Flask sessions — required for OAuth and session cookies
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "sentinel-dev-secret-key-change-in-production-32chars")
 
@@ -83,18 +87,24 @@ groq_client = Groq(
 # ---------------------------------------------------------------------------
 oauth = OAuth(app)
 
+google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+
 oauth.register(
     name="google",
-    client_id=os.environ.get("GOOGLE_CLIENT_ID"),
-    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET"),
+    client_id=google_client_id,
+    client_secret=google_client_secret,
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )
 
+github_client_id = os.environ.get("GITHUB_CLIENT_ID", "")
+github_client_secret = os.environ.get("GITHUB_CLIENT_SECRET", "")
+
 oauth.register(
     name="github",
-    client_id=os.environ.get("GITHUB_CLIENT_ID"),
-    client_secret=os.environ.get("GITHUB_CLIENT_SECRET"),
+    client_id=github_client_id,
+    client_secret=github_client_secret,
     access_token_url="https://github.com/login/oauth/access_token",
     authorize_url="https://github.com/login/oauth/authorize",
     api_base_url="https://api.github.com/",
@@ -123,6 +133,24 @@ def make_user_id(provider: str, sub: str) -> str:
 
 @app.route("/auth/google")
 def auth_google():
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+    if not client_id or client_id == "paste_google_id_here":
+        return Response(
+            """
+            <body style="background:#050505;color:#fff;font-family:sans-serif;padding:50px;text-align:center;">
+                <h2 style="color:#ff4757;">Google OAuth Not Configured</h2>
+                <p style="color:#aaa;max-width:600px;margin:0 auto 20px auto;line-height:1.6;">
+                    Your <code>GOOGLE_CLIENT_ID</code> is currently missing or set to placeholder in <code>.env</code>.
+                </p>
+                <p style="color:#ccc;line-height:1.6;">
+                    Please create an OAuth 2.0 Web Client in Google Cloud Console, add your Client ID &amp; Secret to <code>.env</code> (and Vercel environment variables), then try again.
+                </p>
+                <a href="/" style="display:inline-block;margin-top:20px;padding:10px 20px;background:#00f3ff;color:#000;text-decoration:none;border-radius:8px;font-weight:600;">Return Home</a>
+            </body>
+            """,
+            mimetype="text/html",
+            status=400
+        )
     redirect_uri = url_for("auth_google_callback", _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
@@ -131,15 +159,23 @@ def auth_google():
 def auth_google_callback():
     try:
         token = oauth.google.authorize_access_token()
-        userinfo = token.get("userinfo") or oauth.google.userinfo()
-        user_id = make_user_id("google", str(userinfo.get("sub", "")))
-        session["user"] = {
-            "id": user_id,
-            "name": userinfo.get("name", "User"),
-            "email": userinfo.get("email", ""),
-            "picture": userinfo.get("picture", ""),
-            "provider": "google",
-        }
+        userinfo = token.get("userinfo")
+        if not userinfo:
+            try:
+                userinfo = oauth.google.userinfo(token=token)
+            except Exception:
+                userinfo = {}
+
+        sub_id = str(userinfo.get("sub") or userinfo.get("id") or "")
+        if sub_id:
+            user_id = make_user_id("google", sub_id)
+            session["user"] = {
+                "id": user_id,
+                "name": userinfo.get("name", "Google User"),
+                "email": userinfo.get("email", ""),
+                "picture": userinfo.get("picture", ""),
+                "provider": "google",
+            }
     except Exception as e:
         session.pop("user", None)
     return redirect("/")
@@ -147,6 +183,24 @@ def auth_google_callback():
 
 @app.route("/auth/github")
 def auth_github():
+    client_id = os.environ.get("GITHUB_CLIENT_ID", "").strip()
+    if not client_id or client_id == "paste_github_id_here":
+        return Response(
+            """
+            <body style="background:#050505;color:#fff;font-family:sans-serif;padding:50px;text-align:center;">
+                <h2 style="color:#ff4757;">GitHub OAuth Not Configured</h2>
+                <p style="color:#aaa;max-width:600px;margin:0 auto 20px auto;line-height:1.6;">
+                    Your <code>GITHUB_CLIENT_ID</code> is currently missing or set to placeholder in <code>.env</code>.
+                </p>
+                <p style="color:#ccc;line-height:1.6;">
+                    Please create an OAuth App in GitHub Developer Settings, add your Client ID &amp; Secret to <code>.env</code> (and Vercel environment variables), then try again.
+                </p>
+                <a href="/" style="display:inline-block;margin-top:20px;padding:10px 20px;background:#00f3ff;color:#000;text-decoration:none;border-radius:8px;font-weight:600;">Return Home</a>
+            </body>
+            """,
+            mimetype="text/html",
+            status=400
+        )
     redirect_uri = url_for("auth_github_callback", _external=True)
     return oauth.github.authorize_redirect(redirect_uri)
 
@@ -168,7 +222,7 @@ def auth_github_callback():
         user_id = make_user_id("github", str(profile.get("id", "")))
         session["user"] = {
             "id": user_id,
-            "name": profile.get("name") or profile.get("login", "User"),
+            "name": profile.get("name") or profile.get("login", "GitHub User"),
             "email": email,
             "picture": profile.get("avatar_url", ""),
             "provider": "github",
