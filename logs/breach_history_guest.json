@@ -12,5 +12,12 @@
     "total_passwords": 1,
     "breached_count": 1,
     "vulnerable_count": 1
+  },
+  {
+    "timestamp": "2026-09-04T03:11:47.656173+00:00",
+    "time_formatted": "03:11:47",
+    "total_passwords": 2,
+    "breached_count": 2,
+    "vulnerable_count": 2
   }
 ]
