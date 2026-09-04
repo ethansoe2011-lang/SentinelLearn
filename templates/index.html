@@ -3,473 +3,581 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SentinelLearn | AI Cybersecurity Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Sentinel | Next-Gen AI Cybersecurity & Education</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-dark: #050505;
-            --bg-gradient: radial-gradient(circle at top, #111 0%, #000 100%);
             --neon-primary: #00f3ff;
-            --neon-secondary: #bc13fe;
-            --neon-green: #39ff14;
+            --neon-secondary: #4facfe;
+            --neon-safe: #39ff14;
             --neon-warning: #ffaa00;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --panel-bg: rgba(20, 20, 20, 0.6);
+            --neon-danger: #ff073a;
+            --panel-bg: rgba(18, 18, 18, 0.7);
+            --panel-card-bg: rgba(25, 25, 30, 0.55);
             --border-light: rgba(255, 255, 255, 0.08);
-            --glass-blur: blur(16px);
+            --text-main: #ffffff;
+            --text-muted: #999999;
+            --glass-blur: blur(20px);
         }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            background: var(--bg-dark);
-            background-image: var(--bg-gradient);
-            color: var(--text-main); 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
+            background: radial-gradient(circle at top, #111116 0%, var(--bg-dark) 100%);
+            color: var(--text-main);
             overflow-x: hidden;
         }
 
         /* Subtle grid background pattern */
         body::before {
             content: '';
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: linear-gradient(var(--border-light) 1px, transparent 1px), linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+            background-image: 
+                linear-gradient(var(--border-light) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
             background-size: 50px 50px;
-            opacity: 0.2;
+            opacity: 0.15;
             z-index: -1;
             pointer-events: none;
         }
 
-        /* ── Top navigation bar ── */
-        .top-bar {
-            width: 100%;
+        /* Header / Navbar */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 50px;
-            background: rgba(5, 5, 5, 0.65);
+            padding: 20px 50px;
+            background: rgba(5, 5, 5, 0.75);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
             border-bottom: 1px solid var(--border-light);
-            box-sizing: border-box;
             z-index: 100;
         }
 
-        .top-bar-brand {
-            font-size: 1.1rem;
-            font-weight: 700;
+        header h1 {
+            margin: 0;
+            font-size: 1.3rem;
             color: #fff;
+            font-weight: 700;
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .top-bar-brand::before {
+        header h1::before {
             content: '';
             display: inline-block;
-            width: 9px;
-            height: 9px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: var(--neon-primary);
-            box-shadow: 0 0 12px var(--neon-primary);
+            box-shadow: 0 0 12px var(--neon-primary), 0 0 20px var(--neon-primary);
         }
 
-        /* ── Auth Widget ── */
-        #auth-widget {
+        .header-right {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 30px;
         }
 
-        .auth-sign-in-btn {
-            padding: 9px 20px;
-            background: transparent;
-            color: var(--neon-primary);
-            border: 1px solid var(--neon-primary);
-            border-radius: 50px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
             position: relative;
         }
-        .auth-sign-in-btn:hover {
-            background: rgba(0, 243, 255, 0.1);
-            box-shadow: 0 0 18px rgba(0, 243, 255, 0.3);
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #fff;
         }
 
-        .auth-dropdown {
+        .nav-links a::after {
+            content: '';
             position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            background: rgba(12, 12, 12, 0.97);
-            border: 1px solid var(--border-light);
-            border-radius: 14px;
-            padding: 10px;
-            min-width: 220px;
-            display: none;
+            left: 0;
+            bottom: -5px;
+            width: 0%;
+            height: 2px;
+            background: var(--neon-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+            box-shadow: 0 0 8px var(--neon-primary);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
             flex-direction: column;
-            gap: 6px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
-            backdrop-filter: blur(20px);
-            z-index: 200;
-        }
-        .auth-dropdown.open { display: flex; }
-
-        .auth-provider-btn {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: 10px;
-            border: 1px solid var(--border-light);
-            background: rgba(255,255,255,0.03);
-            color: #eee;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.25s;
-            cursor: pointer;
-        }
-        .auth-provider-btn:hover {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.2);
-            color: #fff;
-        }
-        .auth-provider-btn svg { flex-shrink: 0; }
-
-        .auth-dropdown-label {
-            padding: 6px 16px 4px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        /* Logged-in state */
-        .auth-user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .auth-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: 2px solid var(--neon-primary);
-            object-fit: cover;
-            box-shadow: 0 0 10px rgba(0,243,255,0.3);
-        }
-        .auth-avatar-placeholder {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: 2px solid var(--neon-primary);
-            background: rgba(0,243,255,0.15);
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 0 10px rgba(0,243,255,0.3);
-        }
-        .auth-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #fff;
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .auth-sign-out-btn {
-            padding: 7px 16px;
-            background: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border-light);
-            border-radius: 50px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        .auth-sign-out-btn:hover {
-            color: #fff;
-            border-color: rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.05);
-        }
-
-        /* ── Main content ── */
-        .container { 
-            max-width: 1200px; 
-            width: 90%;
-            margin: 40px auto; 
-            padding: 50px;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 32px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1);
+            align-items: center;
+            padding: 120px 30px 60px 30px;
             text-align: center;
+            position: relative;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            border-radius: 50px;
+            color: var(--neon-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
         }
 
-        h1 {
-            font-size: 3.5rem;
-            margin: 0 0 20px 0;
-            font-weight: 700;
-            letter-spacing: -1.5px;
-            background: linear-gradient(135deg, #fff 0%, #888 100%);
+        .hero-title {
+            font-size: 3.8rem;
+            font-weight: 800;
+            line-height: 1.15;
+            max-width: 900px;
+            margin: 0 0 25px 0;
+            background: linear-gradient(135deg, #ffffff 30%, var(--neon-primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
 
-        p.subtitle { 
-            font-size: 1.2rem; 
-            color: var(--text-muted); 
-            line-height: 1.7; 
-            margin: 0 auto 50px auto; 
-            max-width: 800px;
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 680px;
+            line-height: 1.6;
+            margin: 0 0 40px 0;
         }
 
-        /* Module Grid */
-        .module-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            width: 100%;
+        .hero-cta-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
-        .module-card {
-            position: relative;
+        .btn-cta {
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .btn-cta-primary {
+            background: var(--neon-primary);
+            color: #000;
+            border: 1px solid var(--neon-primary);
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.35);
+        }
+
+        .btn-cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 35px rgba(0, 243, 255, 0.6);
+            background: #22f6ff;
+        }
+
+        .btn-cta-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid var(--border-light);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .btn-cta-secondary:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Scroll Down Indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            align-items: flex-start;
-            text-align: left;
-            padding: 40px 30px;
-            border-radius: 24px;
-            text-decoration: none;
-            overflow: hidden;
-            border: 1px solid var(--border-light);
-            background: rgba(10, 10, 10, 0.8);
-            min-height: 250px;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 1;
-        }
-
-        /* Module Background Images with Transparency */
-        .module-bg {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover;
-            background-position: center;
-            opacity: 0.15;
-            z-index: -1;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            filter: grayscale(80%) contrast(120%);
-        }
-
-        /* Hover Effects */
-        .module-card:hover {
-            transform: translateY(-8px);
-            background: rgba(15, 15, 15, 0.9);
-        }
-
-        .module-card:hover .module-bg {
-            opacity: 0.35;
-            transform: scale(1.05);
-            filter: grayscale(20%) contrast(120%);
-        }
-
-        /* Individual Card Accents */
-        .card-dashboard:hover { border-color: var(--neon-primary); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); }
-        .card-password:hover { border-color: var(--neon-green); box-shadow: 0 10px 40px rgba(57, 255, 20, 0.15); }
-        .card-education:hover { border-color: var(--text-main); box-shadow: 0 10px 40px rgba(255, 255, 255, 0.15); }
-        .card-quiz:hover { border-color: var(--neon-secondary); box-shadow: 0 10px 40px rgba(188, 19, 254, 0.15); }
-
-        .module-card h3 {
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0 0 10px 0;
-            display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: color 0.3s ease;
         }
 
-        .module-card p {
-            color: #bbb;
-            font-size: 0.95rem;
-            line-height: 1.6;
+        .scroll-indicator:hover {
+            color: var(--neon-primary);
+        }
+
+        .scroll-indicator-arrow {
+            width: 20px;
+            height: 20px;
+            border-right: 2px solid var(--text-muted);
+            border-bottom: 2px solid var(--text-muted);
+            transform: rotate(45deg);
+            animation: bounceArrow 2s infinite;
+        }
+
+        .scroll-indicator:hover .scroll-indicator-arrow {
+            border-color: var(--neon-primary);
+        }
+
+        @keyframes bounceArrow {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(45deg); }
+            40% { transform: translateY(8px) rotate(45deg); }
+            60% { transform: translateY(4px) rotate(45deg); }
+        }
+
+        /* Overview Section */
+        .overview-section {
+            padding: 120px 50px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 750px;
+            margin: 0 auto 70px auto;
+        }
+
+        .section-tag {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--neon-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .section-title {
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 20px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .section-description {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
             margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
-        /* Icon styling */
-        .icon-circle {
-            width: 48px;
-            height: 48px;
+        /* Overview Cards Grid */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .overview-card {
+            background: var(--panel-card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 35px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .overview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--neon-primary), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .overview-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        .overview-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 54px;
+            height: 54px;
             border-radius: 14px;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
             font-size: 1.5rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(5px);
+            margin-bottom: 22px;
+            color: var(--neon-primary);
         }
-        
-        .card-dashboard .icon-circle { color: var(--neon-primary); border-color: rgba(0,243,255,0.3); }
-        .card-password .icon-circle { color: var(--neon-green); border-color: rgba(57,255,20,0.3); }
-        .card-education .icon-circle { color: #fff; border-color: rgba(255,255,255,0.3); }
-        .card-quiz .icon-circle { color: var(--neon-secondary); border-color: rgba(188,19,254,0.3); }
 
-        /* Dropdown wrapper needs position relative */
-        .auth-sign-in-wrapper {
-            position: relative;
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 12px 0;
+        }
+
+        .card-text {
+            font-size: 0.98rem;
+            color: var(--text-muted);
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        /* Highlights Banner */
+        .highlights-banner {
+            margin-top: 80px;
+            background: radial-gradient(circle at center, rgba(0, 243, 255, 0.08) 0%, rgba(18, 18, 22, 0.6) 100%);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            padding: 50px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
+            text-align: center;
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .stat-item h3 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--neon-primary);
+            margin: 0 0 8px 0;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+
+        .stat-item p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Smooth Scroll Fade-In Transitions */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 50px;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background: rgba(5, 5, 5, 0.9);
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            header { padding: 15px 25px; }
+            .hero-title { font-size: 2.6rem; }
+            .overview-section { padding: 80px 25px; }
+            .overview-grid { grid-template-columns: 1fr; }
+            .highlights-banner { padding: 30px 20px; }
         }
     </style>
 </head>
 <body>
-    <!-- Top Navigation Bar with Auth Widget -->
-    <div class="top-bar">
-        <div class="top-bar-brand">SentinelLearn</div>
-        <div id="auth-widget">
-            <!-- Populated by JS -->
-            <span style="color: #444; font-size: 0.85rem;">Loading...</span>
+
+    <!-- Header Navigation -->
+    <header>
+        <h1>Sentinel</h1>
+        <div class="header-right">
+            <div class="nav-links">
+                <a href="/" class="active">Home</a>
+                <a href="#overview">Overview</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/password-manager">Vault</a>
+                <a href="/education">Education</a>
+                <a href="/quiz-center">Quiz Center</a>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <div class="container">
-        <h1>SentinelLearn</h1>
-        <p class="subtitle">An AI-Driven Cybersecurity &amp; Threat Simulation Platform designed to bridge the gap between theoretical cybersecurity education and practical threat recognition.</p>
-        
-        <div class="module-grid">
-            <!-- Dashboard Card -->
-            <a href="/dashboard" class="module-card card-dashboard">
-                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800');"></div>
-                <div class="icon-circle">🛡️</div>
-                <h3>Launch Dashboard</h3>
-                <p>Monitor real-time system logs, scan external URLs/files, and intercept threats instantly.</p>
-            </a>
-
-            <!-- Password Manager Card -->
-            <a href="/password-manager" class="module-card card-password">
-                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1614064641913-6b71a3061283?auto=format&fit=crop&q=80&w=800');"></div>
-                <div class="icon-circle">🔐</div>
-                <h3>Password Vault</h3>
-                <p>Generate highly secure passwords, store credentials, and check against live data breach records.</p>
-            </a>
-
-            <!-- Education Hub Card -->
-            <a href="/education" class="module-card card-education">
-                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800');"></div>
-                <div class="icon-circle">🧠</div>
-                <h3>Education Hub</h3>
-                <p>Consult with the Sentinel AI tutor for real-time answers on malware, safe browsing, and infosec.</p>
-            </a>
-
-            <!-- Quizzes Card -->
-            <a href="/quiz" class="module-card card-quiz">
-                <div class="module-bg" style="background-image: url('https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&q=80&w=800');"></div>
-                <div class="icon-circle">⚡</div>
-                <h3>Flashcards &amp; Quizzes</h3>
-                <p>Generate AI-powered dynamic study sets to test your cybersecurity knowledge on demand.</p>
-            </a>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-badge">⚡ Real-Time Security &amp; AI Intelligence</div>
+        <h1 class="hero-title">Next-Gen Threat Prevention &amp; Interactive Defense</h1>
+        <p class="hero-subtitle">
+            Sentinel continuously monitors system activity, analyzes suspicious URLs and binaries, and empowers users with real-time AI security learning.
+        </p>
+        <div class="hero-cta-group">
+            <a href="/dashboard" class="btn-cta btn-cta-primary">Launch Dashboard ➔</a>
+            <a href="#overview" class="btn-cta btn-cta-secondary">Explore Program Overview</a>
         </div>
-    </div>
 
+        <a href="#overview" class="scroll-indicator">
+            <span>Scroll Down</span>
+            <div class="scroll-indicator-arrow"></div>
+        </a>
+    </section>
+
+    <!-- Program Overview Section -->
+    <section class="overview-section" id="overview">
+        <div class="section-header reveal">
+            <span class="section-tag">Comprehensive Program Overview</span>
+            <h2 class="section-title">Engineered for Automated Defense and Cybersecurity Training</h2>
+            <p class="section-description">
+                Sentinel combines automated background monitoring, deep static file inspection, live hardware telemetry, and interactive AI-driven cybersecurity education into a unified security platform.
+            </p>
+        </div>
+
+        <div class="overview-grid">
+            <div class="overview-card reveal">
+                <div class="card-icon">🛡️</div>
+                <h3 class="card-title">Real-Time Threat Analysis</h3>
+                <p class="card-text">
+                    Leverages AI models to inspect browser behavior, incoming URLs, and suspicious activity logs to immediately detect and mitigate multi-stage phishing and malware attacks.
+                </p>
+            </div>
+
+            <div class="overview-card reveal">
+                <div class="card-icon">🔬</div>
+                <h3 class="card-title">Deep Binary &amp; Static File Inspection</h3>
+                <p class="card-text">
+                    Analyzes uploaded executables, archives, and documents using YARA rules, PE structure analysis, entropy metrics, and macro de-obfuscation without requiring file execution.
+                </p>
+            </div>
+
+            <div class="overview-card reveal">
+                <div class="card-icon">💻</div>
+                <h3 class="card-title">Live Hardware Telemetry</h3>
+                <p class="card-text">
+                    Tracks CPU load, RAM utilization, storage health, active processes, and system uptime in real time with intuitive live tracking visualizers.
+                </p>
+            </div>
+
+            <div class="overview-card reveal">
+                <div class="card-icon">🔑</div>
+                <h3 class="card-title">Encrypted Password Vault</h3>
+                <p class="card-text">
+                    Stores sensitive credentials safely using Fernet symmetric encryption and verifies passwords against breach databases using the HaveIBeenPwned API.
+                </p>
+            </div>
+
+            <div class="overview-card reveal">
+                <div class="card-icon">🎓</div>
+                <h3 class="card-title">Interactive AI Quiz &amp; EduBot</h3>
+                <p class="card-text">
+                    Generates dynamic study sets, flashcards, scenario-based MCQs, and free response questions graded instantly with targeted safety recommendations.
+                </p>
+            </div>
+
+            <div class="overview-card reveal">
+                <div class="card-icon">📊</div>
+                <h3 class="card-title">Centralized Audit Logging</h3>
+                <p class="card-text">
+                    Maintains transparent, persistent logs of all background scans, manual URL checks, and threat verdicts for full visibility and security compliance.
+                </p>
+            </div>
+        </div>
+
+        <!-- Metrics Banner -->
+        <div class="highlights-banner reveal">
+            <div class="stat-item">
+                <h3>100%</h3>
+                <p>Non-Execution Static Scanning</p>
+            </div>
+            <div class="stat-item">
+                <h3>Real-Time</h3>
+                <p>Hardware &amp; Process Telemetry</p>
+            </div>
+            <div class="stat-item">
+                <h3>AI-Powered</h3>
+                <p>Threat Classification &amp; Grading</p>
+            </div>
+            <div class="stat-item">
+                <h3>AES-256</h3>
+                <p>Encrypted Password Security</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Sentinel Security. Advanced AI Cyber Defense &amp; Learning Architecture.</p>
+    </footer>
+
+    <!-- Scroll Transition Logic -->
     <script>
-        // ── Shared Auth Widget Logic ──
-        async function initAuthWidget() {
-            const widget = document.getElementById('auth-widget');
-            try {
-                const res = await fetch('/api/auth/me');
-                const data = await res.json();
+        function handleScrollReveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            const windowHeight = window.innerHeight;
+            const revealPoint = 100;
 
-                if (data.logged_in && data.user) {
-                    const user = data.user;
-                    const avatarHtml = user.picture
-                        ? `<img class="auth-avatar" src="${escapeHtml(user.picture)}" alt="avatar">`
-                        : `<div class="auth-avatar-placeholder">👤</div>`;
-
-                    widget.innerHTML = `
-                        <div class="auth-user-info">
-                            ${avatarHtml}
-                            <span class="auth-name">${escapeHtml(user.name)}</span>
-                            <a href="/auth/logout" class="auth-sign-out-btn">Sign Out</a>
-                        </div>
-                    `;
-                } else {
-                    widget.innerHTML = `
-                        <div class="auth-sign-in-wrapper">
-                            <button class="auth-sign-in-btn" id="signInBtn" aria-haspopup="true" aria-expanded="false">Sign In ▾</button>
-                            <div class="auth-dropdown" id="authDropdown" role="menu">
-                                <div class="auth-dropdown-label">Continue with</div>
-                                <a href="/auth/google" class="auth-provider-btn" role="menuitem">
-                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                                        <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                                        <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
-                                        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                                    </svg>
-                                    Google
-                                </a>
-                                <a href="/auth/github" class="auth-provider-btn" role="menuitem">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-                                    </svg>
-                                    GitHub
-                                </a>
-                            </div>
-                        </div>
-                    `;
-
-                    const signInBtn = document.getElementById('signInBtn');
-                    const dropdown = document.getElementById('authDropdown');
-
-                    signInBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const isOpen = dropdown.classList.toggle('open');
-                        signInBtn.setAttribute('aria-expanded', isOpen);
-                    });
-
-                    document.addEventListener('click', () => {
-                        dropdown.classList.remove('open');
-                        if (signInBtn) signInBtn.setAttribute('aria-expanded', 'false');
-                    });
+            reveals.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                if (elementTop < windowHeight - revealPoint) {
+                    element.classList.add('active');
                 }
-            } catch (e) {
-                widget.innerHTML = '';
-            }
+            });
         }
 
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-
-        initAuthWidget();
+        window.addEventListener('scroll', handleScrollReveal);
+        window.addEventListener('load', handleScrollReveal);
     </script>
 </body>
 </html>

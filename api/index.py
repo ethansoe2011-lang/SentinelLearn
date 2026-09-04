@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, Response, redirect, session, url_for
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
 import time
@@ -14,7 +15,7 @@ import zipfile
 import string
 import random
 import requests
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse
 from groq import Groq
 from dotenv import load_dotenv
@@ -56,6 +57,13 @@ try:
 except ImportError:
     COMPILED_YARA = None
 
+# Prime psutil for non-blocking telemetry readings
+try:
+    import psutil
+    psutil.cpu_percent(interval=None)
+except Exception:
+    pass
+
 # Load environment variables from .env file for local development
 load_dotenv()
 
@@ -75,6 +83,7 @@ CORS(app, resources={
     r"/api/activity-check": {"origins": "*"},
     r"/api/logs*":          {"origins": "*"},
     r"/api/scan-file":      {"origins": "*"},
+    r"/api/system-stats":   {"origins": "*"},
 })
 
 # Initialize the Groq Client
@@ -113,8 +122,27 @@ oauth.register(
 
 
 # ---------------------------------------------------------------------------
-# AUTH HELPERS
+# AUTH HELPERS & LOCAL USER STORAGE
 # ---------------------------------------------------------------------------
+LOGS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
+USERS_FILE = os.path.join(LOGS_DIR, "users.json")
+
+
+def load_users() -> dict:
+    if not os.path.exists(USERS_FILE):
+        return {}
+    try:
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_users(users: dict) -> None:
+    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, indent=2)
+
 
 def get_current_user():
     """Return the logged-in user dict from session, or None if not logged in."""
@@ -130,6 +158,66 @@ def make_user_id(provider: str, sub: str) -> str:
 # ---------------------------------------------------------------------------
 # AUTH ROUTES
 # ---------------------------------------------------------------------------
+
+@app.route("/api/auth/register", methods=["POST"])
+def auth_register():
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+    name = data.get("name", "").strip() or email.split("@")[0] or "User"
+
+    if not email or not password:
+        return jsonify({"status": "error", "message": "Email and password are required."}), 400
+
+    users = load_users()
+    if email in users:
+        return jsonify({"status": "error", "message": "An account with this email already exists."}), 400
+
+    user_id = hashlib.sha256(f"local:{email}".encode()).hexdigest()[:32]
+    pw_hash = generate_password_hash(password)
+
+    users[email] = {
+        "id": user_id,
+        "email": email,
+        "name": name,
+        "password_hash": pw_hash,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    save_users(users)
+
+    session["user"] = {
+        "id": user_id,
+        "name": name,
+        "email": email,
+        "picture": "",
+        "provider": "local"
+    }
+    return jsonify({"status": "success", "user": session["user"]})
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        return jsonify({"status": "error", "message": "Email and password are required."}), 400
+
+    users = load_users()
+    user_record = users.get(email)
+    if not user_record or not check_password_hash(user_record.get("password_hash", ""), password):
+        return jsonify({"status": "error", "message": "Invalid email or password."}), 401
+
+    session["user"] = {
+        "id": user_record["id"],
+        "name": user_record["name"],
+        "email": user_record["email"],
+        "picture": user_record.get("picture", ""),
+        "provider": "local"
+    }
+    return jsonify({"status": "success", "user": session["user"]})
+
 
 @app.route("/auth/google")
 def auth_google():
@@ -176,7 +264,7 @@ def auth_google_callback():
                 "picture": userinfo.get("picture", ""),
                 "provider": "google",
             }
-    except Exception as e:
+    except Exception:
         session.pop("user", None)
     return redirect("/")
 
@@ -211,7 +299,6 @@ def auth_github_callback():
         token = oauth.github.authorize_access_token()
         resp = oauth.github.get("user", token=token)
         profile = resp.json()
-        # Get primary email if not public
         email = profile.get("email", "")
         if not email:
             email_resp = oauth.github.get("user/emails", token=token)
@@ -227,7 +314,7 @@ def auth_github_callback():
             "picture": profile.get("avatar_url", ""),
             "provider": "github",
         }
-    except Exception as e:
+    except Exception:
         session.pop("user", None)
     return redirect("/")
 
@@ -273,6 +360,10 @@ def education_topic(topic_id):
 def quiz():
     return render_template('quiz.html')
 
+@app.route('/quiz-center')
+def quiz_center():
+    return render_template('quiz_center.html')
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze_threat():
     data = request.get_json()
@@ -315,7 +406,15 @@ def ask_education():
             messages=[
                 {
                     "role": "system",
-                    "content": "You are Sentinel EduBot, an encouraging and knowledgeable AI cybersecurity tutor. Answer user questions about cybersecurity, online safety, malicious data, and threat prevention clearly and concisely. Keep responses easy to understand, practical, and well-structured."
+                    "content": (
+                        "You are Sentinel EduBot, an encouraging and knowledgeable AI cybersecurity tutor in the Education Hub. "
+                        "When explaining cybersecurity threats or answering user questions, release information in a clear, well-structured format: "
+                        "1. Summary overview of the topic/threat. "
+                        "2. Bulleted key risk indicators or characteristics. "
+                        "3. Actionable prevention and protection strategies. "
+                        "Always conclude your response with a dedicated section titled '**Suggested Topics to Explore Next**' "
+                        "that provides 3 specific, relevant follow-up cybersecurity topics for the user to read about and learn from."
+                    )
                 },
                 {
                     "role": "user",
@@ -400,7 +499,8 @@ def grade_quiz():
             "1. Grade each FRQ out of 10 points and provide a short, constructive feedback sentence.\n"
             "2. Provide an overall overview of their quiz results.\n"
             "3. List specific topics they should focus on studying based on their gaps.\n"
-            "4. Provide practical advice on what they should be particularly careful of when browsing the internet based on this topic.\n\n"
+            "4. Provide 3 specific suggested quiz topics they should take next to deepen their cybersecurity knowledge.\n"
+            "5. Provide practical advice on what they should be particularly careful of when browsing the internet based on this topic.\n\n"
             "Output strictly in JSON format with no markdown formatting. Ensure it matches this exact structure:\n"
             "{\n"
             "  \"frq_evaluations\": [\n"
@@ -408,6 +508,7 @@ def grade_quiz():
             "  ],\n"
             "  \"overview\": \"...\",\n"
             "  \"focus_areas\": [\"...\", \"...\"],\n"
+            "  \"suggested_topics\": [\"Suggested Topic 1\", \"Suggested Topic 2\", \"Suggested Topic 3\"],\n"
             "  \"safety_warning\": \"...\"\n"
             "}"
         )
@@ -449,10 +550,7 @@ def grade_quiz():
 
 class SentinelLogger:
     MAX_MEMORY_ENTRIES = 200
-    LOG_FILENAME = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "logs", "activity_log.jsonl"
-    )
+    LOG_FILENAME = os.path.join(LOGS_DIR, "activity_log.jsonl")
 
     def __init__(self):
         self._lock = threading.Lock()
@@ -539,13 +637,113 @@ def gather_system_snapshot() -> str:
     except Exception as e:
         return f"[SERVER SYSTEM ERROR] Failed to gather system telemetry: {str(e)}"
 
+
+# ---------------------------------------------------------------------------
+# REAL-TIME SYSTEM TELEMETRY & HARDWARE STATS
+# ---------------------------------------------------------------------------
+
+@app.route('/api/system-stats', methods=['GET'])
+def get_system_stats():
+    """Returns real-time computer hardware statistics and security counters."""
+    stats = {
+        "status": "success",
+        "cpu_percent": 0.0,
+        "cpu_cores": 1,
+        "memory_percent": 0.0,
+        "memory_used_gb": 0.0,
+        "memory_total_gb": 0.0,
+        "disk_percent": 0.0,
+        "disk_used_gb": 0.0,
+        "disk_total_gb": 0.0,
+        "process_count": 0,
+        "uptime_seconds": 0,
+        "uptime_formatted": "0m",
+        "system_status": "OPTIMAL",
+        "platform": "Unknown",
+        "threat_count": 0,
+        "safe_count": 0,
+        "suspicious_count": 0,
+        "total_scans": 0,
+        "timestamp": datetime.now(timezone.utc).strftime("%H:%M:%S")
+    }
+
+    try:
+        import psutil
+        import platform
+
+        cpu_p = psutil.cpu_percent(interval=None)
+        if cpu_p == 0.0:
+            cpu_p = psutil.cpu_percent(interval=0.05)
+        stats["cpu_percent"] = round(cpu_p, 1)
+        stats["cpu_cores"] = psutil.cpu_count(logical=True) or 1
+
+        mem = psutil.virtual_memory()
+        stats["memory_percent"] = round(mem.percent, 1)
+        stats["memory_used_gb"] = round((mem.total - mem.available) / (1024 ** 3), 2)
+        stats["memory_total_gb"] = round(mem.total / (1024 ** 3), 2)
+
+        try:
+            root_path = os.path.abspath(os.sep)
+            disk = psutil.disk_usage(root_path)
+            stats["disk_percent"] = round(disk.percent, 1)
+            stats["disk_used_gb"] = round(disk.used / (1024 ** 3), 2)
+            stats["disk_total_gb"] = round(disk.total / (1024 ** 3), 2)
+        except Exception:
+            pass
+
+        try:
+            stats["process_count"] = len(psutil.pids())
+        except Exception:
+            pass
+
+        try:
+            boot_time = psutil.boot_time()
+            uptime_secs = int(time.time() - boot_time)
+            stats["uptime_seconds"] = uptime_secs
+            hours = uptime_secs // 3600
+            mins = (uptime_secs % 3600) // 60
+            if hours > 0:
+                stats["uptime_formatted"] = f"{hours}h {mins}m"
+            else:
+                stats["uptime_formatted"] = f"{mins}m"
+        except Exception:
+            pass
+
+        if stats["cpu_percent"] > 85 or stats["memory_percent"] > 90:
+            stats["system_status"] = "HIGH LOAD"
+        elif stats["cpu_percent"] > 65 or stats["memory_percent"] > 80:
+            stats["system_status"] = "ELEVATED"
+        else:
+            stats["system_status"] = "OPTIMAL"
+
+        stats["platform"] = f"{platform.system()} {platform.release()}"
+
+    except Exception as e:
+        stats["system_status"] = "NOMINAL"
+        stats["error"] = str(e)
+
+    try:
+        logs = _sentinel_logger.read_recent(limit=200)
+        threat_cnt = sum(1 for l in logs if str(l.get("verdict", "")).upper() == "THREAT")
+        safe_cnt = sum(1 for l in logs if str(l.get("verdict", "")).upper() == "SAFE")
+        suspicious_cnt = sum(1 for l in logs if str(l.get("verdict", "")).upper() == "SUSPICIOUS")
+        stats["threat_count"] = threat_cnt
+        stats["safe_count"] = safe_cnt
+        stats["suspicious_count"] = suspicious_cnt
+        stats["total_scans"] = len(logs)
+    except Exception:
+        pass
+
+    return jsonify(stats)
+
+
 # ---------------------------------------------------------------------------
 # SECTION 4 — BEFORE-REQUEST HOOK
 # ---------------------------------------------------------------------------
 
 _last_snapshot_time: float = 0.0          
 _SNAPSHOT_COOLDOWN_SECS: float = 30.0     
-_EXCLUDED_PREFIXES = ("/api/logs", "/static/", "/favicon", "/auth/")
+_EXCLUDED_PREFIXES = ("/api/logs", "/static/", "/favicon", "/auth/", "/api/system-stats")
 
 @app.before_request
 def auto_system_scan():
@@ -614,13 +812,11 @@ def check_domain_threat_intel(url: str) -> dict:
         parsed = urlparse(url)
         domain = parsed.netloc or parsed.path
         
-        # 1. Deterministic Blacklist Lookup (Mocked for Demo - corresponds to VirusTotal/AbuseIPDB logic)
         suspicious_keywords = ['malware', 'phishing', 'secure-login-update', 'free-crypto']
         if any(kw in domain.lower() for kw in suspicious_keywords):
             intel["blacklisted"] = True
             intel["flags"].append("Domain matched known Threat Intelligence Blocklist (VirusTotal / AbuseIPDB)")
             
-        # 2. WHOIS Domain Age Check
         if whois:
             w = whois.whois(domain)
             creation_date = w.creation_date
@@ -659,13 +855,11 @@ def activity_check():
     }
     log_entry = type_labels.get(check_type, f"Unknown browser activity involving '{value}'.")
 
-    # 1. Deterministic API Pre-Filtering
     if check_type == "url":
         intel = check_domain_threat_intel(value)
         if intel["flags"]:
             log_entry += f" [Threat Intel Data: {', '.join(intel['flags'])}]"
 
-    # 2. Fetch Session Correlation Context
     recent_history = _sentinel_logger.read_recent(limit=5)
     context_str = " | ".join([
         f"Past Action ({entry.get('type')}): {entry.get('summary', '')[:50]}" 
@@ -675,7 +869,6 @@ def activity_check():
         context_str = "No recent correlated activity."
 
     try:
-        # 3. JSON Schema Enforcement
         completion = groq_client.chat.completions.create(
             messages=[
                 {
@@ -758,7 +951,7 @@ def extract_static_telemetry(filename: str, file_bytes: bytes) -> dict:
         detected_type = "ZIP Archive / Office OpenXML"
     elif file_bytes.startswith(b"%PDF"):
         detected_type = "PDF Document"
-    elif file_bytes.startswith(b"\xd0\xcf\x11\xe0"):
+    elif file_bytes.startswith(b"\xd0\xcf\11\xe0"):
         detected_type = "Legacy MS Compound Document / OLE"
     elif file_bytes.startswith(b"<!DOCTYPE") or file_bytes.startswith(b"<html"):
         detected_type = "HTML Document"
@@ -787,7 +980,6 @@ def extract_static_telemetry(filename: str, file_bytes: bytes) -> dict:
     suspicious_keywords_found = []
     extracted_apis = []
 
-    # Deep Binary PE Parsing
     if pefile and is_executable_type and file_bytes.startswith(b"MZ"):
         try:
             pe = pefile.PE(data=file_bytes)
@@ -803,7 +995,6 @@ def extract_static_telemetry(filename: str, file_bytes: bytes) -> dict:
         except Exception:
             pass
 
-    # Macro De-obfuscation
     if VBA_Parser and (has_macros or detected_type.startswith("Legacy MS Compound")):
         try:
             vbaparser = VBA_Parser(filename, data=file_bytes)
@@ -814,7 +1005,6 @@ def extract_static_telemetry(filename: str, file_bytes: bytes) -> dict:
         except Exception:
             pass
 
-    # YARA Signature Matching
     if COMPILED_YARA:
         try:
             yara_matches = COMPILED_YARA.match(data=file_bytes)
@@ -945,7 +1135,6 @@ def logs_page():
 # ---------------------------------------------------------------------------
 # SECTION 6 — PASSWORD MANAGER ROUTES
 # ---------------------------------------------------------------------------
-LOGS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
 VAULT_KEY_FILE = os.path.join(LOGS_DIR, "vault.key")
 
 if not os.path.exists(VAULT_KEY_FILE):
@@ -1070,7 +1259,7 @@ def manage_vault():
 
 
 # ---------------------------------------------------------------------------
-# SECTION 7 — QUIZ HISTORY ROUTES
+# SECTION 7 — QUIZ HISTORY & QUIZ CENTER DASHBOARD DATA
 # ---------------------------------------------------------------------------
 
 def _quiz_history_path(user_id: str = "guest") -> str:
@@ -1100,10 +1289,7 @@ def save_quiz_history(history: list, user_id: str = "guest") -> None:
 @app.route('/api/quiz/history', methods=['GET', 'POST'])
 def quiz_history():
     user = get_current_user()
-    if not user:
-        return jsonify({'status': 'error', 'message': 'Not logged in'}), 401
-
-    user_id = user["id"]
+    user_id = user["id"] if user else "guest"
 
     if request.method == 'GET':
         history = load_quiz_history(user_id)
@@ -1112,18 +1298,34 @@ def quiz_history():
     if request.method == 'POST':
         data = request.get_json() or {}
         history = load_quiz_history(user_id)
+        
+        mcq_score = int(data.get("mcq_score", 0))
+        mcq_total = int(data.get("mcq_total", 0))
+        percentage = round((mcq_score / mcq_total * 100), 1) if mcq_total > 0 else 0.0
+
+        default_suggestions = ["Phishing & Email Security", "Malware & Ransomware Defense", "Network Traffic Security"]
+        suggested = data.get("suggested_topics") or default_suggestions
+
         entry = {
+            "id": str(int(time.time() * 1000)),
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "topic": data.get("topic", "Unknown"),
-            "mcq_score": data.get("mcq_score", 0),
-            "mcq_total": data.get("mcq_total", 0),
-            "overview": data.get("overview", ""),
+            "topic": data.get("topic", "General Cybersecurity"),
+            "mcq_score": mcq_score,
+            "mcq_total": mcq_total,
+            "percentage": percentage,
+            "flashcards_count": int(data.get("flashcards_count", 3)),
+            "overview": data.get("overview", "Quiz session completed."),
+            "focus_areas": data.get("focus_areas", []),
+            "suggested_topics": suggested,
+            "frq_evaluations": data.get("frq_evaluations", []),
+            "safety_warning": data.get("safety_warning", "")
         }
+        
         history.insert(0, entry)
-        # Keep only the last 20 quiz results per user
-        history = history[:20]
+        # Keep up to 100 historic quiz records per user
+        history = history[:100]
         save_quiz_history(history, user_id)
-        return jsonify({'status': 'success'})
+        return jsonify({'status': 'success', 'entry': entry})
 
 
 if __name__ == '__main__':

@@ -1,0 +1,9 @@
+{
+  "ethansoe2011@gmail.com": {
+    "id": "06a6e613a7432671d352aac0eb961cb2",
+    "email": "ethansoe2011@gmail.com",
+    "name": "Ethan Soesilo",
+    "password_hash": "scrypt:32768:8:1$aGCbKqI1K72sAM0H$b7309441ae82d04d578dff2807d3775d6ec9264e0ddc9369932e14133cf2414a7d79284a181ea50df0a74fde5e64a0fad3e3d1dba80aba5ac4a5015a3d45cd26",
+    "created_at": "2026-09-04T00:03:43.000397+00:00"
+  }
+}

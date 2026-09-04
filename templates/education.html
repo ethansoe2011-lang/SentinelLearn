@@ -11,6 +11,7 @@
             --bg-gradient: radial-gradient(circle at top, #111 0%, #000 100%);
             --glow-primary: #4facfe;
             --neon-primary: #00f3ff;
+            --neon-danger: #ff073a;
             --panel-bg: rgba(20, 20, 20, 0.6);
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
@@ -29,7 +30,6 @@
             position: relative;
         }
 
-        /* Subtle grid background pattern matching the landing page */
         body::before {
             content: '';
             position: fixed;
@@ -48,7 +48,7 @@
             -webkit-backdrop-filter: var(--glass-blur);
             border-bottom: 1px solid var(--border-light); z-index: 10;
         }
-        header h1 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 12px;}
+        header h1 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 12px; }
         header h1::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--glow-primary); box-shadow: 0 0 15px var(--glow-primary); }
         
         .header-right { display: flex; align-items: center; gap: 30px; }
@@ -59,23 +59,29 @@
         .nav-links a:hover::after { width: 100%; box-shadow: 0 0 8px var(--glow-primary); }
 
         /* Auth Widget */
-        #auth-widget { display: flex; align-items: center; gap: 14px; }
-        .auth-sign-in-btn { padding: 7px 18px; background: transparent; color: var(--neon-primary); border: 1px solid var(--neon-primary); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s; position: relative; }
+        #auth-widget { display: flex; align-items: center; gap: 14px; position: relative; }
+        .auth-sign-in-btn { padding: 7px 18px; background: transparent; color: var(--neon-primary); border: 1px solid var(--neon-primary); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
         .auth-sign-in-btn:hover { background: rgba(0,243,255,0.1); box-shadow: 0 0 15px rgba(0,243,255,0.3); }
-        .auth-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(12,12,12,0.97); border: 1px solid var(--border-light); border-radius: 14px; padding: 10px; min-width: 220px; display: none; flex-direction: column; gap: 6px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 200; }
+        .auth-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(12,12,12,0.97); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; min-width: 280px; display: none; flex-direction: column; gap: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 200; }
         .auth-dropdown.open { display: flex; }
-        .auth-provider-btn { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.03); color: #eee; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.25s; cursor: pointer; }
+        .auth-provider-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.03); color: #eee; text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: all 0.25s; }
         .auth-provider-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #fff; }
-        .auth-dropdown-label { padding: 6px 16px 4px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .auth-dropdown-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; text-align: center; }
+        .auth-divider { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin: 4px 0; }
+        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+        .auth-form { display: flex; flex-direction: column; gap: 8px; }
+        .auth-form input { padding: 9px 12px; font-size: 0.85rem; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-light); color: #fff; }
+        .auth-form-toggle { font-size: 0.78rem; color: var(--neon-primary); cursor: pointer; text-align: center; margin-top: 4px; text-decoration: underline; }
+        .auth-submit-btn { padding: 9px 12px; background: var(--neon-primary); color: #000; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+        .auth-submit-btn:hover { opacity: 0.9; box-shadow: 0 0 12px rgba(0,243,255,0.4); }
+        .auth-error { font-size: 0.75rem; color: var(--neon-danger); text-align: center; display: none; }
         .auth-user-info { display: flex; align-items: center; gap: 10px; }
         .auth-avatar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); object-fit: cover; }
         .auth-avatar-placeholder { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); background: rgba(0,243,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
         .auth-name { font-size: 0.85rem; font-weight: 600; color: #fff; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .auth-sign-out-btn { padding: 6px 14px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.3s; text-decoration: none; }
         .auth-sign-out-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
-        .auth-sign-in-wrapper { position: relative; }
 
-        /* Two-column layout */
         .content-wrapper { 
             flex: 1; 
             display: grid; 
@@ -89,11 +95,8 @@
             align-items: start;
         }
 
-        /* Responsive collapse for smaller screens */
         @media (max-width: 1024px) {
-            .content-wrapper {
-                grid-template-columns: 1fr;
-            }
+            .content-wrapper { grid-template-columns: 1fr; }
         }
 
         .panel-card { 
@@ -112,7 +115,6 @@
         .panel-card h2 { color: #fff; margin: 0 0 10px 0; font-weight: 600; font-size: 1.6rem;}
         p.subtitle { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6;}
         
-        /* Left Column: Info Styling */
         .info-section {
             background: rgba(0,0,0,0.4);
             border: 1px solid rgba(255,255,255,0.05);
@@ -122,14 +124,6 @@
             box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
-        }
-        .info-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
         }
         .info-section h3 {
             margin: 0 0 15px 0;
@@ -169,7 +163,6 @@
             transform: translateY(-2px);
         }
 
-        /* Right Column: Chat Styling */
         .chat-container { display: flex; flex-direction: column; gap: 20px; }
         
         textarea {
@@ -190,86 +183,75 @@
             background-color: rgba(79, 172, 254, 0.1); box-shadow: 0 0 25px rgba(79, 172, 254, 0.4);
             text-shadow: 0 0 8px var(--glow-primary); transform: translateY(-2px);
         }
-        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; opacity: 0.5;}
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; box-shadow: none; }
 
-        .response-area {
-            margin-top: 30px; padding: 35px; background: rgba(5, 5, 5, 0.6);
-            border: 1px solid var(--border-light); border-radius: 16px; display: none;
-            line-height: 1.8; font-size: 1.1rem; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            color: #e0e0e0;
+        .chat-response {
+            background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-light);
+            border-radius: 16px; padding: 25px; min-height: 180px; color: #e0e0e0;
+            line-height: 1.8; font-size: 1.05rem; backdrop-filter: blur(10px);
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .response-area h3 { margin: 0 0 20px 0; color: var(--glow-primary); font-size: 1.2rem; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; gap: 10px;}
-        .response-area h3::before { content: '🤖'; font-size: 1.4rem; }
     </style>
 </head>
 <body>
+
     <header>
-        <h1>Sentinel EduBot</h1>
+        <h1>Education Hub</h1>
         <div class="header-right">
             <div class="nav-links">
                 <a href="/">Home</a>
                 <a href="/dashboard">Dashboard</a>
                 <a href="/password-manager">Password Vault</a>
                 <a href="/quiz">Quizzes</a>
+                <a href="/quiz-center">Quiz Center</a>
+                <a href="/logs">Full Logs</a>
             </div>
             <div id="auth-widget"><span style="color:#444;font-size:0.8rem;">...</span></div>
         </div>
     </header>
 
     <div class="content-wrapper">
-        
-        <!-- Left Column: Information Panel -->
         <div class="panel-card">
-            <h2>Cybersecurity Essentials</h2>
-            <p class="subtitle">A quick reference guide for recognizing and neutralizing digital threats. Choose a topic to dive into an interactive learning module.</p>
+            <h1>Cybersecurity Core Concepts</h1>
+            <p class="subtitle">Learn about common digital security risks and defensive best practices.</p>
             
             <div class="info-section">
-                <img class="info-image" src="https://images.unsplash.com/photo-1562813733-b31f71025d54?auto=format&fit=crop&w=800&q=80" alt="Hacker Code Screen">
+                <h3>🎣 Phishing &amp; Social Engineering</h3>
                 <ul>
-                    <li><strong>Phishing Elements:</strong> Look for extreme urgency, spelling errors, and sender email addresses that don't match the company domain.</li>
-                    <li><strong>Deceptive URLs:</strong> Always hover over links before clicking. Ensure the spelling of the domain is exact (e.g., <em>google.com</em> vs <em>g00gle.com</em>).</li>
+                    <li><strong>Spear Phishing:</strong> Highly targeted attempts addressing specific individuals or organizations.</li>
+                    <li><strong>Red Flags:</strong> Urgency, unexpected attachments, altered URLs, and requests for sensitive credentials.</li>
                 </ul>
-                <a href="/education/topic/phishing" class="deep-dive-btn">Deep Dive: Interactive Phishing Module ➔</a>
+                <a href="/education/topic/phishing" class="deep-dive-btn">Explore Topic Deep Dive →</a>
             </div>
 
             <div class="info-section">
-                <img class="info-image" src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Binary code malware concept">
-                <h3>🛡️ How to Prevent Attacks</h3>
+                <h3>🦠 Malware &amp; System Threats</h3>
                 <ul>
-                    <li><strong>Unexpected Payloads:</strong> Treat unsolicited attachments with extreme caution, particularly executable files (.exe) or compressed archives (.zip).</li>
-                    <li><strong>Patch Management:</strong> Keep your operating system, web browsers, and critical software updated to eliminate known vulnerabilities.</li>
+                    <li><strong>Ransomware:</strong> Encrypts user files and demands payment for decryption keys.</li>
+                    <li><strong>Trojan Horses:</strong> Malicious software masquerading as legitimate applications.</li>
                 </ul>
-                <a href="/education/topic/malware" class="deep-dive-btn">Deep Dive: Interactive Malware Sandbox ➔</a>
+                <a href="/education/topic/malware" class="deep-dive-btn">Explore Topic Deep Dive →</a>
             </div>
 
             <div class="info-section">
-                <img class="info-image" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80" alt="Network server racks">
+                <h3>🌐 Network &amp; Traffic Security</h3>
                 <ul>
-                    <li><strong>Multi-Factor Authentication (MFA):</strong> Enable MFA on all accounts. Even if your password is stolen, attackers cannot bypass the secondary token.</li>
-                    <li><strong>Zero Trust:</strong> Never automatically trust public Wi-Fi. Avoid logging into banking or sensitive portals on unencrypted networks.</li>
+                    <li><strong>Man-in-the-Middle (MitM):</strong> Interception of communications over unsecured network channels.</li>
+                    <li><strong>Defenses:</strong> HTTPS encryption, VPN usage, and strict certificate validation.</li>
                 </ul>
-                <a href="/education/topic/network" class="deep-dive-btn">Deep Dive: Interactive Zero Trust Module ➔</a>
+                <a href="/education/topic/network" class="deep-dive-btn">Explore Topic Deep Dive →</a>
             </div>
         </div>
 
-        <!-- Right Column: AI Chatbot -->
         <div class="panel-card">
-            <h1>Consult Sentinel AI</h1>
-            <p class="subtitle">Have specific questions? Your personal expert on malware analysis, infosec, and safe digital practices is standing by.</p>
-            
+            <h2>Ask EduBot AI Assistant</h2>
+            <p class="subtitle">Have a question regarding security concepts, threat vectors, or best practices?</p>
+
             <div class="chat-container">
-                <textarea id="questionInput" placeholder="E.g., What is ransomware, and how does it propagate across a local network?"></textarea>
-                <button id="askBtn" class="btn">Ask Sentinel</button>
-            </div>
-
-            <div id="responseArea" class="response-area">
-                <h3>Sentinel Output</h3>
-                <div id="responseContent"></div>
+                <textarea id="eduQuestion" placeholder="e.g., How can I recognize a spoofed email domain?"></textarea>
+                <button class="btn" id="askBtn">Ask EduBot</button>
+                <div class="chat-response" id="eduAnswer">EduBot responses will appear here.</div>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -279,53 +261,39 @@
                 .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
-        const askBtn = document.getElementById('askBtn');
-        const questionInput = document.getElementById('questionInput');
-        const responseArea = document.getElementById('responseArea');
-        const responseContent = document.getElementById('responseContent');
+        document.getElementById('askBtn').addEventListener('click', async () => {
+            const qInput = document.getElementById('eduQuestion');
+            const aDiv = document.getElementById('eduAnswer');
+            const btn = document.getElementById('askBtn');
 
-        askBtn.addEventListener('click', async () => {
-            const question = questionInput.value.trim();
-            if (!question) return;
-            
-            askBtn.disabled = true;
-            askBtn.innerText = 'Synthesizing...';
-            responseArea.style.display = 'block';
-            responseContent.innerHTML = '<span style="color: #666; font-style: italic; display: flex; align-items: center; gap: 10px;">Generating response <span class="spinner" style="display:inline-block;animation:spin 1s linear infinite;">⏳</span></span>';
+            if (!qInput.value.trim()) return;
 
-            if(!document.getElementById('spinStyle')) {
-                const style = document.createElement('style');
-                style.id = 'spinStyle';
-                style.innerHTML = '@keyframes spin { 100% { transform: rotate(360deg); } }';
-                document.head.appendChild(style);
-            }
+            btn.innerText = "Analyzing...";
+            btn.disabled = true;
+            aDiv.innerHTML = "<span style='color: #888;'>Consulting Sentinel Security Knowledge Base...</span>";
 
             try {
                 const res = await fetch('/api/ask-education', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question })
+                    body: JSON.stringify({ question: qInput.value })
                 });
-                
-                const json = await res.json();
-                
-                if (json.status === 'success') {
-                    // Replace newlines and simple bold markdown for cleaner output
-                    let formattedAnswer = json.answer.replace(/\n/g, '<br>');
-                    formattedAnswer = formattedAnswer.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>');
-                    responseContent.innerHTML = formattedAnswer;
+                const data = await res.json();
+                if (data.status === 'success') {
+                    aDiv.innerText = data.answer;
                 } else {
-                    responseContent.innerHTML = `<span style="color: #ff4757;">Error: ${json.message}</span>`;
+                    aDiv.innerText = "Error: " + data.message;
                 }
             } catch (e) {
-                responseContent.innerHTML = '<span style="color: #ff4757;">Connection error communicating with Sentinel AI.</span>';
+                aDiv.innerText = "Failed to connect to AI Education Bot.";
             } finally {
-                askBtn.disabled = false;
-                askBtn.innerText = 'Ask Sentinel';
+                btn.innerText = "Ask EduBot";
+                btn.disabled = false;
             }
         });
 
-        // ── Auth Widget ──
+        let isSignUpMode = false;
+
         async function initAuthWidget() {
             const widget = document.getElementById('auth-widget');
             try {
@@ -342,16 +310,74 @@
                         <div class="auth-sign-in-wrapper">
                             <button class="auth-sign-in-btn" id="signInBtn">Sign In ▾</button>
                             <div class="auth-dropdown" id="authDropdown">
-                                <div class="auth-dropdown-label">Continue with</div>
-                                <a href="/auth/google" class="auth-provider-btn">🔵 Google</a>
-                                <a href="/auth/github" class="auth-provider-btn">⚫ GitHub</a>
+                                <div class="auth-dropdown-label">OAuth Quick Login</div>
+                                <a href="/auth/google" class="auth-provider-btn">🔵 Continue with Google</a>
+                                <a href="/auth/github" class="auth-provider-btn">⚫ Continue with GitHub</a>
+                                <div class="auth-divider">Or Account Login</div>
+                                <div class="auth-error" id="authErrorMsg"></div>
+                                <form class="auth-form" id="authForm">
+                                    <input type="text" id="authNameInput" placeholder="Full Name" style="display:none;" />
+                                    <input type="email" id="authEmailInput" placeholder="Email Address" required />
+                                    <input type="password" id="authPasswordInput" placeholder="Password" required />
+                                    <button type="submit" class="auth-submit-btn" id="authSubmitBtn">Log In</button>
+                                </form>
+                                <div class="auth-form-toggle" id="authToggleBtn">Need an account? Sign Up</div>
                             </div>
                         </div>
                     `;
                     const btn = document.getElementById('signInBtn');
                     const dd = document.getElementById('authDropdown');
                     btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('open'); });
-                    document.addEventListener('click', () => dd.classList.remove('open'));
+                    document.addEventListener('click', (e) => { if (!dd.contains(e.target) && e.target !== btn) dd.classList.remove('open'); });
+
+                    const form = document.getElementById('authForm');
+                    const toggleBtn = document.getElementById('authToggleBtn');
+                    const nameInput = document.getElementById('authNameInput');
+                    const submitBtn = document.getElementById('authSubmitBtn');
+                    const errorMsg = document.getElementById('authErrorMsg');
+
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        isSignUpMode = !isSignUpMode;
+                        if (isSignUpMode) {
+                            nameInput.style.display = 'block';
+                            submitBtn.innerText = 'Create Account';
+                            toggleBtn.innerText = 'Already have an account? Log In';
+                        } else {
+                            nameInput.style.display = 'none';
+                            submitBtn.innerText = 'Log In';
+                            toggleBtn.innerText = 'Need an account? Sign Up';
+                        }
+                    });
+
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        errorMsg.style.display = 'none';
+                        const email = document.getElementById('authEmailInput').value;
+                        const password = document.getElementById('authPasswordInput').value;
+                        const name = nameInput.value;
+
+                        const endpoint = isSignUpMode ? '/api/auth/register' : '/api/auth/login';
+                        const payload = isSignUpMode ? { email, password, name } : { email, password };
+
+                        try {
+                            const authRes = await fetch(endpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            const authData = await authRes.json();
+                            if (authData.status === 'success') {
+                                window.location.reload();
+                            } else {
+                                errorMsg.innerText = authData.message || 'Authentication failed.';
+                                errorMsg.style.display = 'block';
+                            }
+                        } catch (err) {
+                            errorMsg.innerText = 'Network error during login.';
+                            errorMsg.style.display = 'block';
+                        }
+                    });
                 }
             } catch(e) { widget.innerHTML = ''; }
         }

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Center | Sentinel Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --neon-primary: #00f3ff;
+            --neon-purple: #bc13fe;
+            --neon-safe: #39ff14;
+            --neon-warning: #ffaa00;
+            --panel-bg: rgba(18, 18, 18, 0.75);
+            --border-light: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --glass-blur: blur(20px);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0;
+            background: radial-gradient(circle at top, #151515 0%, var(--bg-dark) 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(5, 5, 5, 0.65);
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border-light); z-index: 10;
+        }
+
+        header h1 {
+            margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600;
+            display: flex; align-items: center; gap: 12px;
+        }
+        header h1::before {
+            content: ''; display: inline-block; width: 10px; height: 10px;
+            border-radius: 50%; background: var(--neon-primary);
+            box-shadow: 0 0 12px var(--neon-primary);
+        }
+
+        .header-right { display: flex; align-items: center; gap: 30px; }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a {
+            color: var(--text-muted); text-decoration: none; font-weight: 500;
+            font-size: 0.95rem; transition: all 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        .container {
+            max-width: 1400px; width: 92%; margin: 30px auto;
+            display: flex; flex-direction: column; gap: 25px; flex: 1;
+        }
+
+        /* Time Generalization Bar */
+        .filter-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--panel-bg); border: 1px solid var(--border-light);
+            border-radius: 18px; padding: 15px 25px; backdrop-filter: var(--glass-blur);
+            flex-wrap: wrap; gap: 15px;
+        }
+
+        .filter-title { font-size: 0.95rem; font-weight: 600; color: #fff; }
+
+        .time-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .time-btn {
+            padding: 8px 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-light);
+            border-radius: 50px; color: var(--text-muted); font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; transition: all 0.3s; font-family: 'Inter', sans-serif;
+        }
+
+        .time-btn:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
+        .time-btn.active {
+            background: rgba(0, 243, 255, 0.12); border-color: var(--neon-primary);
+            color: var(--neon-primary); box-shadow: 0 0 12px rgba(0,243,255,0.2);
+        }
+
+        /* Metrics Summary Grid */
+        .metrics-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;
+        }
+
+        .metric-card {
+            background: var(--panel-bg); border: 1px solid var(--border-light);
+            border-radius: 18px; padding: 22px; backdrop-filter: var(--glass-blur);
+            display: flex; flex-direction: column; gap: 8px;
+        }
+
+        .metric-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .metric-value { font-size: 1.8rem; font-weight: 700; color: #fff; font-family: monospace; }
+        .metric-sub { font-size: 0.78rem; color: var(--neon-safe); }
+
+        /* Dashboard Main Layout */
+        .dashboard-grid {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 25px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--panel-bg); border: 1px solid var(--border-light);
+            border-radius: 20px; padding: 25px; backdrop-filter: var(--glass-blur);
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .panel h3 { margin: 0; font-size: 1.15rem; color: #fff; font-weight: 600; }
+
+        .chart-container { position: relative; width: 100%; height: 260px; }
+
+        /* Overview AI Box */
+        .overview-box {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 16px; padding: 20px; line-height: 1.6; color: #ddd; font-size: 0.95rem;
+        }
+
+        /* Suggested Topics Section */
+        .suggested-section {
+            background: rgba(188, 19, 254, 0.05); border: 1px solid rgba(188, 19, 254, 0.2);
+            border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 15px;
+        }
+
+        .suggested-grid { display: flex; flex-direction: column; gap: 12px; }
+
+        .suggested-card {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-light);
+            border-radius: 12px; transition: all 0.3s;
+        }
+
+        .suggested-card:hover { border-color: var(--neon-purple); transform: translateX(4px); }
+
+        .suggested-btn {
+            padding: 8px 16px; background: var(--neon-purple); color: #fff; border: none;
+            border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem;
+            transition: all 0.3s; font-family: 'Inter', sans-serif; text-decoration: none;
+        }
+
+        .suggested-btn:hover { box-shadow: 0 0 15px rgba(188,19,254,0.5); }
+
+        /* History Table */
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+
+        .history-table th, .history-table td {
+            text-align: left; padding: 12px 16px; font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .history-table th { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; }
+
+        .badge-score {
+            padding: 4px 10px; border-radius: 50px; font-weight: 700; font-size: 0.75rem;
+            display: inline-block;
+        }
+        .badge-high { background: rgba(57,255,20,0.15); color: var(--neon-safe); border: 1px solid var(--neon-safe); }
+        .badge-mid { background: rgba(255,170,0,0.15); color: var(--neon-warning); border: 1px solid var(--neon-warning); }
+        .badge-low { background: rgba(255,7,58,0.15); color: #ff073a; border: 1px solid #ff073a; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Quiz Center &amp; Learning Analytics</h1>
+        <div class="header-right">
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/password-manager">Vault</a>
+                <a href="/education">Education</a>
+                <a href="/quiz">Quizzes</a>
+                <a href="/quiz-center" class="active">Quiz Center</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Time Generalization Bar -->
+        <div class="filter-bar">
+            <span class="filter-title">📊 Time Generalization Range:</span>
+            <div class="time-btn-group">
+                <button class="time-btn" onclick="setTimeFilter('1d', this)">1 Day</button>
+                <button class="time-btn" onclick="setTimeFilter('10d', this)">10 Days</button>
+                <button class="time-btn active" onclick="setTimeFilter('1w', this)">1 Week</button>
+                <button class="time-btn" onclick="setTimeFilter('1m', this)">1 Month</button>
+                <button class="time-btn" onclick="setTimeFilter('6m', this)">6 Months</button>
+                <button class="time-btn" onclick="setTimeFilter('1y', this)">1 Year</button>
+                <button class="time-btn" onclick="setTimeFilter('all', this)">All Time</button>
+            </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <span class="metric-label">Quizzes Completed</span>
+                <span class="metric-value" id="mQuizzes">0</span>
+                <span class="metric-sub">In selected timeframe</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Avg. Accuracy</span>
+                <span class="metric-value" id="mAccuracy">0%</span>
+                <span class="metric-sub" id="mAccuracySub">Overall performance</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Flashcards Reviewed</span>
+                <span class="metric-value" id="mFlashcards">0</span>
+                <span class="metric-sub">Concepts mastered</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Top Topic</span>
+                <span class="metric-value" id="mTopTopic" style="font-size: 1.2rem;">--</span>
+                <span class="metric-sub">Highest frequency</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Charts & AI Overview -->
+        <div class="dashboard-grid">
+            <!-- Left Side: Performance Trend & Topic Breakdown -->
+            <div style="display: flex; flex-direction: column; gap: 25px;">
+                <div class="panel">
+                    <h3>Performance &amp; Accuracy Trend</h3>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>AI Data Overview</h3>
+                    <div class="overview-box" id="overviewBox">
+                        Loading performance overview...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Suggested Topics & Breakdown -->
+            <div style="display: flex; flex-direction: column; gap: 25px;">
+                <div class="suggested-section">
+                    <h3 style="margin:0; color:#fff;">🎯 Suggested Next Quizzes</h3>
+                    <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">
+                        Tailored topics recommended based on your recent performance gaps:
+                    </p>
+                    <div class="suggested-grid" id="suggestedList"></div>
+                </div>
+
+                <div class="panel">
+                    <h3>Topic Mastery Breakdown</h3>
+                    <div class="chart-container" style="height:220px;">
+                        <canvas id="topicChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz History Log Table -->
+        <div class="panel">
+            <h3>Completed Quiz History</h3>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Topic</th>
+                        <th>MCQ Score</th>
+                        <th>Accuracy</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr><td colspan="5" style="text-align:center; color:#666;">Fetching history...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let fullHistory = [];
+        let currentFilter = '1w';
+        let trendChart = null;
+        let topicChart = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchQuizHistory();
+        });
+
+        async function fetchQuizHistory() {
+            try {
+                const res = await fetch('/api/quiz/history');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    fullHistory = data.history || [];
+                    renderDashboard();
+                }
+            } catch (e) {
+                console.error('Failed to load quiz history', e);
+            }
+        }
+
+        function setTimeFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderDashboard();
+        }
+
+        function filterHistoryByRange(history, filter) {
+            if (filter === 'all') return history;
+            const now = new Date();
+            let days = 7;
+            if (filter === '1d') days = 1;
+            else if (filter === '10d') days = 10;
+            else if (filter === '1w') days = 7;
+            else if (filter === '1m') days = 30;
+            else if (filter === '6m') days = 180;
+            else if (filter === '1y') days = 365;
+
+            const cutoff = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+            return history.filter(item => new Date(item.timestamp) >= cutoff);
+        }
+
+        function renderDashboard() {
+            const filtered = filterHistoryByRange(fullHistory, currentFilter);
+
+            // Metrics calculation
+            const totalQuizzes = filtered.length;
+            let totalPct = 0;
+            let totalFlashcards = 0;
+            const topicCounts = {};
+            const suggestedSet = new Set();
+
+            filtered.forEach(item => {
+                totalPct += (item.percentage || 0);
+                totalFlashcards += (item.flashcards_count || 3);
+                topicCounts[item.topic] = (topicCounts[item.topic] || 0) + 1;
+
+                (item.suggested_topics || []).forEach(st => suggestedSet.add(st));
+            });
+
+            const avgAcc = totalQuizzes > 0 ? Math.round(totalPct / totalQuizzes) : 0;
+
+            let topTopic = '--';
+            let maxC = 0;
+            for (let t in topicCounts) {
+                if (topicCounts[t] > maxC) {
+                    maxC = topicCounts[t];
+                    topTopic = t;
+                }
+            }
+
+            document.getElementById('mQuizzes').innerText = totalQuizzes;
+            document.getElementById('mAccuracy').innerText = `${avgAcc}%`;
+            document.getElementById('mFlashcards').innerText = totalFlashcards;
+            document.getElementById('mTopTopic').innerText = topTopic;
+
+            // Overview Synthesis
+            const overviewBox = document.getElementById('overviewBox');
+            if (totalQuizzes === 0) {
+                overviewBox.innerText = 'No quiz data recorded for this time range. Take a quiz to generate analytical data!';
+            } else {
+                overviewBox.innerHTML = `
+                    <strong>Timeframe Summary (${currentFilter.toUpperCase()}):</strong><br>
+                    You completed <strong>${totalQuizzes}</strong> quiz session(s) with an average accuracy of <strong>${avgAcc}%</strong>. 
+                    ${avgAcc >= 80 ? 'Excellent performance! You demonstrate strong proficiency across tested cybersecurity domains.' : 'Steady progress! Review focus areas in recommended topics below to improve overall accuracy.'}
+                `;
+            }
+
+            // Render Suggested Topics List
+            const sugList = document.getElementById('suggestedList');
+            sugList.innerHTML = '';
+            const suggestedArr = Array.from(suggestedSet).slice(0, 4);
+            if (suggestedArr.length === 0) {
+                suggestedArr.push("Phishing & Email Security", "Ransomware Defense", "Network Traffic Safety");
+            }
+
+            suggestedArr.forEach(topicName => {
+                const card = document.createElement('div');
+                card.className = 'suggested-card';
+                card.innerHTML = `
+                    <span style="font-size:0.9rem; font-weight:600; color:#fff;">${topicName}</span>
+                    <a class="suggested-btn" href="/quiz?topic=${encodeURIComponent(topicName)}">Take Quiz</a>
+                `;
+                sugList.appendChild(card);
+            });
+
+            // Render History Table
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#666;">No quizzes found in this timeframe.</td></tr>';
+            } else {
+                filtered.forEach(item => {
+                    const dt = new Date(item.timestamp).toLocaleString();
+                    const pct = item.percentage || 0;
+                    let badgeClass = 'badge-high';
+                    if (pct < 60) badgeClass = 'badge-low';
+                    else if (pct < 80) badgeClass = 'badge-mid';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${dt}</td>
+                            <td><strong>${item.topic}</strong></td>
+                            <td>${item.mcq_score} / ${item.mcq_total}</td>
+                            <td><span class="badge-score ${badgeClass}">${pct}%</span></td>
+                            <td><a href="/quiz?topic=${encodeURIComponent(item.topic)}" style="color:var(--neon-primary); text-decoration:none; font-weight:600;">Retake</a></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render Charts
+            renderCharts(filtered, topicCounts);
+        }
+
+        function renderCharts(data, topicCounts) {
+            // 1. Line Chart: Trend Over Time
+            const sortedData = [...data].reverse();
+            const labels = sortedData.map(d => new Date(d.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }));
+            const scores = sortedData.map(d => d.percentage || 0);
+
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+
+            trendChart = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Accuracy (%)',
+                        data: scores,
+                        borderColor: '#00f3ff',
+                        backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Bar Chart: Topic Breakdown
+            const topicLabels = Object.keys(topicCounts);
+            const topicValues = Object.values(topicCounts);
+
+            const ctxTopic = document.getElementById('topicChart').getContext('2d');
+            if (topicChart) topicChart.destroy();
+
+            topicChart = new Chart(ctxTopic, {
+                type: 'bar',
+                data: {
+                    labels: topicLabels,
+                    datasets: [{
+                        label: 'Sessions Taken',
+                        data: topicValues,
+                        backgroundColor: '#bc13fe',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#888', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentinel Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-dark: #050505;
@@ -68,31 +69,38 @@
         }
         .nav-links a:hover::after { width: 100%; box-shadow: 0 0 8px var(--neon-primary); }
 
-        /* Auth Widget */
-        #auth-widget { display: flex; align-items: center; gap: 14px; }
+        /* Auth Widget & Modal */
+        #auth-widget { display: flex; align-items: center; gap: 14px; position: relative; }
         .auth-sign-in-btn { padding: 7px 18px; background: transparent; color: var(--neon-primary); border: 1px solid var(--neon-primary); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
         .auth-sign-in-btn:hover { background: rgba(0,243,255,0.1); box-shadow: 0 0 15px rgba(0,243,255,0.3); }
-        .auth-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(12,12,12,0.97); border: 1px solid var(--border-light); border-radius: 14px; padding: 10px; min-width: 220px; display: none; flex-direction: column; gap: 6px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 200; }
+        .auth-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(12,12,12,0.97); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; min-width: 280px; display: none; flex-direction: column; gap: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 200; }
         .auth-dropdown.open { display: flex; }
-        .auth-provider-btn { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.03); color: #eee; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.25s; }
+        .auth-provider-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.03); color: #eee; text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: all 0.25s; }
         .auth-provider-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #fff; }
-        .auth-dropdown-label { padding: 6px 16px 4px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .auth-dropdown-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; text-align: center; }
+        .auth-divider { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin: 4px 0; }
+        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+        .auth-form { display: flex; flex-direction: column; gap: 8px; }
+        .auth-form input { padding: 9px 12px; font-size: 0.85rem; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-light); color: #fff; }
+        .auth-form-toggle { font-size: 0.78rem; color: var(--neon-primary); cursor: pointer; text-align: center; margin-top: 4px; text-decoration: underline; }
+        .auth-submit-btn { padding: 9px 12px; background: var(--neon-primary); color: #000; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+        .auth-submit-btn:hover { opacity: 0.9; box-shadow: 0 0 12px rgba(0,243,255,0.4); }
+        .auth-error { font-size: 0.75rem; color: var(--neon-danger); text-align: center; display: none; }
         .auth-user-info { display: flex; align-items: center; gap: 10px; }
         .auth-avatar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); object-fit: cover; }
         .auth-avatar-placeholder { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-primary); background: rgba(0,243,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
         .auth-name { font-size: 0.85rem; font-weight: 600; color: #fff; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .auth-sign-out-btn { padding: 6px 14px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.3s; text-decoration: none; }
         .auth-sign-out-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
-        .auth-sign-in-wrapper { position: relative; }
 
         .dashboard-content { 
-            padding: 40px 50px; flex: 1; display: flex; flex-direction: column; min-height: 0; 
+            padding: 30px 50px; flex: 1; display: flex; flex-direction: column; min-height: 0; 
         }
 
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 30px;
             flex: 1;
             min-height: 0; 
         }
@@ -101,7 +109,7 @@
             background: var(--panel-bg);
             border: 1px solid var(--border-light);
             border-radius: 24px;
-            padding: 40px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02);
@@ -109,23 +117,28 @@
             overflow: hidden;
             position: relative;
         }
+
+        .panel-scrollable {
+            overflow-y: auto;
+            padding: 30px;
+        }
         
         .panel h2 {
-            margin-top: 0; color: #fff; font-size: 1.4rem; font-weight: 500;
-            border-bottom: 1px solid var(--border-light); padding-bottom: 20px;
-            margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;
+            margin-top: 0; color: #fff; font-size: 1.3rem; font-weight: 600;
+            border-bottom: 1px solid var(--border-light); padding-bottom: 16px;
+            margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
         }
 
-        .form-group { margin-bottom: 25px; }
+        .form-group { margin-bottom: 16px; }
         label { 
-            display: block; margin-bottom: 10px; color: var(--text-muted); 
-            font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            display: block; margin-bottom: 8px; color: var(--text-muted); 
+            font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
         }
         
         input, select {
-            width: 100%; padding: 16px 20px; background-color: rgba(0, 0, 0, 0.4);
+            width: 100%; padding: 13px 18px; background-color: rgba(0, 0, 0, 0.4);
             color: #fff; border: 1px solid var(--border-light); border-radius: 12px;
-            box-sizing: border-box; font-size: 1rem; font-family: 'Inter', sans-serif;
+            box-sizing: border-box; font-size: 0.95rem; font-family: 'Inter', sans-serif;
             transition: all 0.3s ease; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
         input:focus, select:focus { 
@@ -135,9 +148,9 @@
         }
         
         .btn {
-            padding: 16px 24px; background-color: transparent; color: var(--text-main);
+            padding: 14px 22px; background-color: transparent; color: var(--text-main);
             border: 1px solid var(--border-light); border-radius: 12px;
-            cursor: pointer; font-weight: 600; width: 100%; font-size: 1rem;
+            cursor: pointer; font-weight: 600; width: 100%; font-size: 0.95rem;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative; overflow: hidden; font-family: 'Inter', sans-serif;
         }
@@ -184,19 +197,270 @@
         #refreshLogs:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
 
         #scanResult {
-            margin-top: 30px; padding: 25px; border-radius: 16px; display: none;
+            margin-top: 20px; padding: 20px; border-radius: 16px; display: none;
             background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-            font-size: 1rem; line-height: 1.6; backdrop-filter: blur(10px);
+            font-size: 0.95rem; line-height: 1.6; backdrop-filter: blur(10px);
             animation: slideDown 0.4s ease forwards;
         }
 
         .risk-list {
-            margin-top: 15px;
+            margin-top: 12px;
             padding-left: 20px;
             color: var(--neon-warning);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
         }
-        .risk-list li { margin-bottom: 5px; }
+        .risk-list li { margin-bottom: 4px; }
+
+        .stats-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .live-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--neon-primary);
+            box-shadow: 0 0 10px var(--neon-primary);
+            animation: pulseGlow 1.8s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.95); box-shadow: 0 0 4px var(--neon-primary); }
+            50% { transform: scale(1.3); box-shadow: 0 0 14px var(--neon-primary), 0 0 20px var(--neon-primary); }
+            100% { transform: scale(0.95); box-shadow: 0 0 4px var(--neon-primary); }
+        }
+
+        .status-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 50px;
+            background: rgba(57, 255, 20, 0.1);
+            color: var(--neon-safe);
+            border: 1px solid var(--neon-safe);
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+            transition: all 0.3s ease;
+        }
+        .status-badge.elevated {
+            background: rgba(255, 170, 0, 0.1);
+            color: var(--neon-warning);
+            border-color: var(--neon-warning);
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+        }
+        .status-badge.danger {
+            background: rgba(255, 7, 58, 0.1);
+            color: var(--neon-danger);
+            border-color: var(--neon-danger);
+            box-shadow: 0 0 10px rgba(255, 7, 58, 0.2);
+        }
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .telemetry-card {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .telemetry-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .telemetry-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .telemetry-card-title {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .telemetry-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            font-family: monospace;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .cpu-fill { background: linear-gradient(90deg, #00f3ff, #0099ff); box-shadow: 0 0 8px rgba(0, 243, 255, 0.4); }
+        .mem-fill { background: linear-gradient(90deg, #bc13fe, #9900ee); box-shadow: 0 0 8px rgba(188, 19, 254, 0.4); }
+        .disk-fill { background: linear-gradient(90deg, #39ff14, #00cc66); box-shadow: 0 0 8px rgba(57, 255, 20, 0.4); }
+        .proc-fill { background: linear-gradient(90deg, #ffaa00, #ff7700); box-shadow: 0 0 8px rgba(255, 170, 0, 0.4); }
+
+        .telemetry-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .graph-section {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        .graph-section.threat-mode {
+            border-color: rgba(255, 7, 58, 0.3);
+            box-shadow: 0 0 20px rgba(255, 7, 58, 0.08);
+        }
+        .graph-section.safe-mode {
+            border-color: rgba(57, 255, 20, 0.3);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.08);
+        }
+
+        .graph-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .graph-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .graph-title {
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.3px;
+        }
+
+        .graph-badge {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        .graph-badge.threat {
+            background: rgba(255, 7, 58, 0.15);
+            color: var(--neon-danger);
+            border: 1px solid var(--neon-danger);
+            box-shadow: 0 0 10px rgba(255, 7, 58, 0.25);
+        }
+        .graph-badge.safe {
+            background: rgba(57, 255, 20, 0.15);
+            color: var(--neon-safe);
+            border: 1px solid var(--neon-safe);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.25);
+        }
+
+        .theme-swap-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-light);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .theme-swap-btn:hover {
+            transform: translateY(-1px);
+        }
+        .theme-swap-btn.to-safe {
+            border-color: var(--neon-safe);
+            color: var(--neon-safe);
+            background: rgba(57, 255, 20, 0.08);
+            box-shadow: 0 0 12px rgba(57, 255, 20, 0.15);
+        }
+        .theme-swap-btn.to-safe:hover {
+            background: rgba(57, 255, 20, 0.18);
+            box-shadow: 0 0 18px rgba(57, 255, 20, 0.3);
+        }
+        .theme-swap-btn.to-threat {
+            border-color: var(--neon-danger);
+            color: var(--neon-danger);
+            background: rgba(255, 7, 58, 0.08);
+            box-shadow: 0 0 12px rgba(255, 7, 58, 0.15);
+        }
+        .theme-swap-btn.to-threat:hover {
+            background: rgba(255, 7, 58, 0.18);
+            box-shadow: 0 0 18px rgba(255, 7, 58, 0.3);
+        }
+
+        .chart-wrapper {
+            width: 100%;
+            height: 180px;
+            position: relative;
+        }
 
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -216,6 +480,7 @@
                 <a href="/password-manager">Password Vault</a>
                 <a href="/education">Education Hub</a>
                 <a href="/quiz">Quizzes</a>
+                <a href="/quiz-center">Quiz Center</a>
                 <a href="/logs">Full Logs</a>
             </div>
             <div id="auth-widget"><span style="color:#444;font-size:0.8rem;">...</span></div>
@@ -224,7 +489,7 @@
 
     <div class="dashboard-content">
         <div class="dashboard-grid">
-            <div class="panel">
+            <div class="panel panel-scrollable">
                 <h2>Manual Activity &amp; URL Scanner</h2>
                 <div class="form-group">
                     <label>Activity Type</label>
@@ -240,6 +505,90 @@
                 <button class="btn btn-primary" id="scanBtn">Scan Activity</button>
 
                 <div id="scanResult"></div>
+
+                <div class="stats-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="live-pulse"></span>
+                            <span>Computer Telemetry &amp; System Health</span>
+                        </div>
+                        <span class="status-badge" id="systemStatusTag">OPTIMAL</span>
+                    </div>
+
+                    <div class="telemetry-grid">
+                        <div class="telemetry-card">
+                            <div class="telemetry-card-header">
+                                <span class="telemetry-card-title">CPU Load</span>
+                                <span class="telemetry-value" id="cpuVal">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill cpu-fill" id="cpuBar" style="width: 0%;"></div>
+                            </div>
+                            <div class="telemetry-meta">
+                                <span id="cpuCores">Cores: --</span>
+                                <span id="platformVal">--</span>
+                            </div>
+                        </div>
+
+                        <div class="telemetry-card">
+                            <div class="telemetry-card-header">
+                                <span class="telemetry-card-title">Memory (RAM)</span>
+                                <span class="telemetry-value" id="memVal">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill mem-fill" id="memBar" style="width: 0%;"></div>
+                            </div>
+                            <div class="telemetry-meta">
+                                <span id="memDetails">-- / -- GB</span>
+                                <span>Active Pool</span>
+                            </div>
+                        </div>
+
+                        <div class="telemetry-card">
+                            <div class="telemetry-card-header">
+                                <span class="telemetry-card-title">Storage (Disk)</span>
+                                <span class="telemetry-value" id="diskVal">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill disk-fill" id="diskBar" style="width: 0%;"></div>
+                            </div>
+                            <div class="telemetry-meta">
+                                <span id="diskDetails">-- / -- GB</span>
+                                <span>System Drive</span>
+                            </div>
+                        </div>
+
+                        <div class="telemetry-card">
+                            <div class="telemetry-card-header">
+                                <span class="telemetry-card-title">Active Processes</span>
+                                <span class="telemetry-value" id="procVal">0</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill proc-fill" id="procBar" style="width: 35%;"></div>
+                            </div>
+                            <div class="telemetry-meta">
+                                <span id="uptimeVal">Uptime: --</span>
+                                <span>Running Tasks</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="graph-section threat-mode" id="graphSection">
+                    <div class="graph-header">
+                        <div class="graph-title-group">
+                            <h3 class="graph-title" id="graphTitle">Live Threat Tracking Velocity</h3>
+                            <span class="graph-badge threat" id="graphCounter">0 Threats Detected</span>
+                        </div>
+                        <button type="button" class="theme-swap-btn to-safe" id="themeSwapBtn" title="Swap live tracking line graph theme and tracking mode">
+                            <span id="swapBtnIcon">🛡️</span>
+                            <span id="themeSwapBtnText">Swap to Safe Files Mode</span>
+                        </button>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="liveTrackingChart"></canvas>
+                    </div>
+                </div>
             </div>
 
             <div class="panel">
@@ -284,10 +633,13 @@
                     
                     if (res.verdict === 'SAFE') {
                         color = 'var(--neon-safe)'; glow = 'rgba(57,255,20,0.15)';
+                        registerLiveEvent('SAFE');
                     } else if (res.verdict === 'THREAT') {
                         color = 'var(--neon-danger)'; glow = 'rgba(255,7,58,0.15)';
+                        registerLiveEvent('THREAT');
                     } else {
                         color = 'var(--neon-warning)'; glow = 'rgba(255,170,0,0.15)';
+                        registerLiveEvent('THREAT');
                     }
                     
                     resDiv.style.borderColor = color;
@@ -308,6 +660,7 @@
                     
                     resDiv.innerHTML = htmlContent;
                     fetchLogs(); 
+                    fetchSystemStats();
                 } else {
                     resDiv.innerHTML = `Error: ${res.message}`;
                 }
@@ -361,7 +714,287 @@
         fetchLogs();
         setInterval(fetchLogs, 15000);
 
-        // ── Auth Widget ──
+        let totalThreats = 0;
+        let totalSafe = 0;
+
+        async function fetchSystemStats() {
+            try {
+                const res = await fetch('/api/system-stats');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const cpuPercent = data.cpu_percent || 0;
+                    document.getElementById('cpuVal').innerText = `${cpuPercent}%`;
+                    document.getElementById('cpuBar').style.width = `${Math.min(cpuPercent, 100)}%`;
+                    document.getElementById('cpuCores').innerText = `Cores: ${data.cpu_cores || '--'}`;
+                    document.getElementById('platformVal').innerText = data.platform || 'Host System';
+
+                    const memPercent = data.memory_percent || 0;
+                    document.getElementById('memVal').innerText = `${memPercent}%`;
+                    document.getElementById('memBar').style.width = `${Math.min(memPercent, 100)}%`;
+                    document.getElementById('memDetails').innerText = `${data.memory_used_gb || 0} / ${data.memory_total_gb || 0} GB`;
+
+                    const diskPercent = data.disk_percent || 0;
+                    document.getElementById('diskVal').innerText = `${diskPercent}%`;
+                    document.getElementById('diskBar').style.width = `${Math.min(diskPercent, 100)}%`;
+                    document.getElementById('diskDetails').innerText = `${data.disk_used_gb || 0} / ${data.disk_total_gb || 0} GB`;
+
+                    document.getElementById('procVal').innerText = `${data.process_count || 0} active`;
+                    document.getElementById('uptimeVal').innerText = `Uptime: ${data.uptime_formatted || '0m'}`;
+                    const procNormalized = Math.min(Math.round(((data.process_count || 50) / 400) * 100), 100);
+                    document.getElementById('procBar').style.width = `${procNormalized}%`;
+
+                    const statusTag = document.getElementById('systemStatusTag');
+                    statusTag.innerText = data.system_status || 'OPTIMAL';
+                    statusTag.className = 'status-badge';
+                    if (data.system_status === 'HIGH LOAD') {
+                        statusTag.classList.add('danger');
+                    } else if (data.system_status === 'ELEVATED') {
+                        statusTag.classList.add('elevated');
+                    }
+
+                    if (data.threat_count !== undefined) totalThreats = Math.max(totalThreats, data.threat_count);
+                    if (data.safe_count !== undefined) totalSafe = Math.max(totalSafe, data.safe_count);
+                    updateGraphCounter();
+                }
+            } catch (err) {
+                console.warn('System telemetry fetch error:', err);
+            }
+        }
+
+        fetchSystemStats();
+        setInterval(fetchSystemStats, 3000);
+
+        let currentGraphMode = 'threat';
+        let trackingChart = null;
+
+        const MAX_DATA_POINTS = 10;
+        const timelineLabels = [];
+        const threatDataSeries = [];
+        const safeDataSeries = [];
+
+        function initGraphData() {
+            const now = new Date();
+            for (let i = MAX_DATA_POINTS - 1; i >= 0; i--) {
+                const pastTime = new Date(now.getTime() - i * 60000);
+                const timeLabel = pastTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                timelineLabels.push(timeLabel);
+                threatDataSeries.push(0);
+                safeDataSeries.push(0);
+            }
+        }
+        initGraphData();
+
+        function createChartGradient(ctx, isSafe) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+            if (isSafe) {
+                gradient.addColorStop(0, 'rgba(57, 255, 20, 0.35)');
+                gradient.addColorStop(1, 'rgba(57, 255, 20, 0.0)');
+            } else {
+                gradient.addColorStop(0, 'rgba(255, 7, 58, 0.35)');
+                gradient.addColorStop(1, 'rgba(255, 7, 58, 0.0)');
+            }
+            return gradient;
+        }
+
+        function initTrackingChart() {
+            const canvas = document.getElementById('liveTrackingChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const ctx = canvas.getContext('2d');
+            const initialGradient = createChartGradient(ctx, false);
+
+            trackingChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timelineLabels,
+                    datasets: [{
+                        label: 'Threats Detected',
+                        data: threatDataSeries,
+                        borderColor: '#ff073a',
+                        backgroundColor: initialGradient,
+                        fill: true,
+                        tension: 0.38,
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ff073a',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 1.5,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#ffffff',
+                        pointHoverBorderColor: '#ff073a',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 600, easing: 'easeOutQuart' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 10, 10, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#dddddd',
+                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) { return `${context.dataset.label}: ${context.parsed.y}`; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#777777', font: { size: 10, family: 'Inter' } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 4,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#777777', font: { size: 10, family: 'Inter' }, stepSize: 1, precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateGraphCounter() {
+            const counter = document.getElementById('graphCounter');
+            if (currentGraphMode === 'threat') {
+                counter.className = 'graph-badge threat';
+                counter.innerText = `${totalThreats} Threat${totalThreats === 1 ? '' : 's'} Detected`;
+            } else {
+                counter.className = 'graph-badge safe';
+                counter.innerText = `${totalSafe} Safe File${totalSafe === 1 ? '' : 's'} Verified`;
+            }
+        }
+
+        function applyGraphTheme(mode) {
+            const section = document.getElementById('graphSection');
+            const title = document.getElementById('graphTitle');
+            const swapBtn = document.getElementById('themeSwapBtn');
+            const swapBtnText = document.getElementById('themeSwapBtnText');
+            const swapBtnIcon = document.getElementById('swapBtnIcon');
+
+            if (!trackingChart) return;
+            const ctx = trackingChart.ctx;
+
+            if (mode === 'safe') {
+                section.className = 'graph-section safe-mode';
+                title.innerText = 'Live Safe Files & Activity Velocity';
+                swapBtn.className = 'theme-swap-btn to-threat';
+                swapBtnText.innerText = 'Swap to Threat Tracker Mode';
+                swapBtnIcon.innerText = '⚠️';
+                swapBtn.title = 'Click to swap live tracking line graph theme to threat tracker';
+
+                const safeGradient = createChartGradient(ctx, true);
+                const dataset = trackingChart.data.datasets[0];
+                dataset.label = 'Safe Files Verified';
+                dataset.data = safeDataSeries;
+                dataset.borderColor = '#39ff14';
+                dataset.backgroundColor = safeGradient;
+                dataset.pointBackgroundColor = '#39ff14';
+                dataset.pointHoverBorderColor = '#39ff14';
+            } else {
+                section.className = 'graph-section threat-mode';
+                title.innerText = 'Live Threat Tracking Velocity';
+                swapBtn.className = 'theme-swap-btn to-safe';
+                swapBtnText.innerText = 'Swap to Safe Files Mode';
+                swapBtnIcon.innerText = '🛡️';
+                swapBtn.title = 'Click to swap live tracking line graph theme to safe files';
+
+                const threatGradient = createChartGradient(ctx, false);
+                const dataset = trackingChart.data.datasets[0];
+                dataset.label = 'Threats Detected';
+                dataset.data = threatDataSeries;
+                dataset.borderColor = '#ff073a';
+                dataset.backgroundColor = threatGradient;
+                dataset.pointBackgroundColor = '#ff073a';
+                dataset.pointHoverBorderColor = '#ff073a';
+            }
+
+            updateGraphCounter();
+            trackingChart.update();
+        }
+
+        document.getElementById('themeSwapBtn').addEventListener('click', () => {
+            currentGraphMode = currentGraphMode === 'threat' ? 'safe' : 'threat';
+            applyGraphTheme(currentGraphMode);
+        });
+
+        function registerLiveEvent(verdict) {
+            if (verdict === 'THREAT' || verdict === 'SUSPICIOUS') {
+                totalThreats++;
+                const lastIdx = threatDataSeries.length - 1;
+                threatDataSeries[lastIdx] = (threatDataSeries[lastIdx] || 0) + 1;
+            } else if (verdict === 'SAFE') {
+                totalSafe++;
+                const lastIdx = safeDataSeries.length - 1;
+                safeDataSeries[lastIdx] = (safeDataSeries[lastIdx] || 0) + 1;
+            }
+
+            updateGraphCounter();
+            if (trackingChart) {
+                trackingChart.update();
+            }
+        }
+
+        function tickLiveGraph() {
+            if (!trackingChart) return;
+
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            timelineLabels.push(timeLabel);
+            if (timelineLabels.length > MAX_DATA_POINTS) timelineLabels.shift();
+
+            threatDataSeries.push(0);
+            if (threatDataSeries.length > MAX_DATA_POINTS) threatDataSeries.shift();
+
+            safeDataSeries.push(0);
+            if (safeDataSeries.length > MAX_DATA_POINTS) safeDataSeries.shift();
+
+            trackingChart.update();
+        }
+
+        async function primeGraphFromLogs() {
+            try {
+                const res = await fetch('/api/logs?limit=50');
+                const data = await res.json();
+                if (data.status === 'success' && data.logs) {
+                    let threatTally = 0;
+                    let safeTally = 0;
+                    data.logs.forEach(log => {
+                        const v = (log.verdict || '').toUpperCase();
+                        if (v === 'THREAT' || v === 'SUSPICIOUS') threatTally++;
+                        else if (v === 'SAFE') safeTally++;
+                    });
+                    totalThreats = Math.max(totalThreats, threatTally);
+                    totalSafe = Math.max(totalSafe, safeTally);
+
+                    if (threatTally > 0) {
+                        threatDataSeries[MAX_DATA_POINTS - 1] = Math.min(threatTally, 5);
+                        threatDataSeries[MAX_DATA_POINTS - 2] = Math.max(0, threatTally - 1);
+                    }
+                    if (safeTally > 0) {
+                        safeDataSeries[MAX_DATA_POINTS - 1] = Math.min(safeTally, 6);
+                        safeDataSeries[MAX_DATA_POINTS - 2] = Math.max(0, safeTally - 1);
+                    }
+                    updateGraphCounter();
+                    if (trackingChart) trackingChart.update();
+                }
+            } catch (e) {
+                console.warn('Log prime error:', e);
+            }
+        }
+
+        initTrackingChart();
+        primeGraphFromLogs();
+        setInterval(tickLiveGraph, 10000);
+
+        let isSignUpMode = false;
+
         async function initAuthWidget() {
             const widget = document.getElementById('auth-widget');
             try {
@@ -378,16 +1011,74 @@
                         <div class="auth-sign-in-wrapper">
                             <button class="auth-sign-in-btn" id="signInBtn">Sign In ▾</button>
                             <div class="auth-dropdown" id="authDropdown">
-                                <div class="auth-dropdown-label">Continue with</div>
-                                <a href="/auth/google" class="auth-provider-btn">🔵 Google</a>
-                                <a href="/auth/github" class="auth-provider-btn">⚫ GitHub</a>
+                                <div class="auth-dropdown-label">OAuth Quick Login</div>
+                                <a href="/auth/google" class="auth-provider-btn">🔵 Continue with Google</a>
+                                <a href="/auth/github" class="auth-provider-btn">⚫ Continue with GitHub</a>
+                                <div class="auth-divider">Or Account Login</div>
+                                <div class="auth-error" id="authErrorMsg"></div>
+                                <form class="auth-form" id="authForm">
+                                    <input type="text" id="authNameInput" placeholder="Full Name" style="display:none;" />
+                                    <input type="email" id="authEmailInput" placeholder="Email Address" required />
+                                    <input type="password" id="authPasswordInput" placeholder="Password" required />
+                                    <button type="submit" class="auth-submit-btn" id="authSubmitBtn">Log In</button>
+                                </form>
+                                <div class="auth-form-toggle" id="authToggleBtn">Need an account? Sign Up</div>
                             </div>
                         </div>
                     `;
                     const btn = document.getElementById('signInBtn');
                     const dd = document.getElementById('authDropdown');
                     btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('open'); });
-                    document.addEventListener('click', () => dd.classList.remove('open'));
+                    document.addEventListener('click', (e) => { if (!dd.contains(e.target) && e.target !== btn) dd.classList.remove('open'); });
+
+                    const form = document.getElementById('authForm');
+                    const toggleBtn = document.getElementById('authToggleBtn');
+                    const nameInput = document.getElementById('authNameInput');
+                    const submitBtn = document.getElementById('authSubmitBtn');
+                    const errorMsg = document.getElementById('authErrorMsg');
+
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        isSignUpMode = !isSignUpMode;
+                        if (isSignUpMode) {
+                            nameInput.style.display = 'block';
+                            submitBtn.innerText = 'Create Account';
+                            toggleBtn.innerText = 'Already have an account? Log In';
+                        } else {
+                            nameInput.style.display = 'none';
+                            submitBtn.innerText = 'Log In';
+                            toggleBtn.innerText = 'Need an account? Sign Up';
+                        }
+                    });
+
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        errorMsg.style.display = 'none';
+                        const email = document.getElementById('authEmailInput').value;
+                        const password = document.getElementById('authPasswordInput').value;
+                        const name = nameInput.value;
+
+                        const endpoint = isSignUpMode ? '/api/auth/register' : '/api/auth/login';
+                        const payload = isSignUpMode ? { email, password, name } : { email, password };
+
+                        try {
+                            const authRes = await fetch(endpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            const authData = await authRes.json();
+                            if (authData.status === 'success') {
+                                window.location.reload();
+                            } else {
+                                errorMsg.innerText = authData.message || 'Authentication failed.';
+                                errorMsg.style.display = 'block';
+                            }
+                        } catch (err) {
+                            errorMsg.innerText = 'Network error during login.';
+                            errorMsg.style.display = 'block';
+                        }
+                    });
                 }
             } catch(e) { widget.innerHTML = ''; }
         }
