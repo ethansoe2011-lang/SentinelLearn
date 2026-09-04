@@ -805,7 +805,7 @@ def auto_system_scan():
 # ---------------------------------------------------------------------------
 
 def check_domain_threat_intel(url: str) -> dict:
-    """Pre-filters URLs against WHOIS and mock Threat Intel Databases."""
+    """Pre-filters URLs against WHOIS and mock Threat Intelligence Databases."""
     intel = {"age_days": None, "blacklisted": False, "flags": []}
     
     try:
@@ -1153,6 +1153,12 @@ def _vault_path(user_id: str = "guest") -> str:
     return os.path.join(LOGS_DIR, f"vault_{safe_id}.json")
 
 
+def _breach_history_path(user_id: str = "guest") -> str:
+    """Return the breach tracking history path scoped to a user ID."""
+    safe_id = re.sub(r'[^a-zA-Z0-9_-]', '', user_id)[:40] or "guest"
+    return os.path.join(LOGS_DIR, f"breach_history_{safe_id}.json")
+
+
 def load_vault(user_id: str = "guest"):
     vault_file = _vault_path(user_id)
     if not os.path.exists(vault_file):
@@ -1174,6 +1180,24 @@ def save_vault(data, user_id: str = "guest"):
     os.makedirs(os.path.dirname(vault_file), exist_ok=True)
     with open(vault_file, "wb") as f:
         f.write(encrypted_data)
+
+
+def load_breach_history(user_id: str = "guest") -> list:
+    path = _breach_history_path(user_id)
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def save_breach_history(history: list, user_id: str = "guest") -> None:
+    path = _breach_history_path(user_id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2)
 
 
 @app.route('/password-manager')
@@ -1240,13 +1264,19 @@ def manage_vault():
                 'site': data.get('site', existing.get('site')),
                 'username': data.get('username', existing.get('username')),
                 'password': data.get('password', existing.get('password')),
+                'is_breached': data.get('is_breached', existing.get('is_breached', False)),
+                'breach_count': data.get('breach_count', existing.get('breach_count', 0)),
+                'last_checked': data.get('last_checked', existing.get('last_checked', None))
             })
         else:
             vault.append({
                 'id': item_id,
                 'site': data.get('site', ''),
                 'username': data.get('username', ''),
-                'password': data.get('password', '')
+                'password': data.get('password', ''),
+                'is_breached': False,
+                'breach_count': 0,
+                'last_checked': None
             })
         save_vault(vault, user_id)
         return jsonify({'status': 'success'})
@@ -1256,6 +1286,89 @@ def manage_vault():
         vault = [item for item in vault if item.get('id') != item_id]
         save_vault(vault, user_id)
         return jsonify({'status': 'success'})
+
+@app.route('/api/passwords/scan-vault', methods=['POST'])
+def scan_vault_breaches():
+    """Scans all passwords currently stored in the user's vault against breach databases and logs breach metrics."""
+    user = get_current_user()
+    user_id = user["id"] if user else "guest"
+    vault = load_vault(user_id)
+    
+    total_items = len(vault)
+    breached_count = 0
+    vulnerable_count = 0
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    for item in vault:
+        pwd = item.get('password', '')
+        if not pwd:
+            continue
+        
+        # Check leak via HIBP k-Anonymity API
+        sha1_pwd = hashlib.sha1(pwd.encode('utf-8')).hexdigest().upper()
+        prefix, suffix = sha1_pwd[:5], sha1_pwd[5:]
+        
+        item_leaked = False
+        item_count = 0
+        try:
+            res = requests.get(f"https://api.pwnedpasswords.com/range/{prefix}", headers={"User-Agent": "SentinelLearn-App"}, timeout=5)
+            if res.status_code == 200:
+                hashes = (line.split(':') for line in res.text.splitlines())
+                for h, count in hashes:
+                    if h == suffix:
+                        item_leaked = True
+                        item_count = int(count)
+                        break
+        except Exception:
+            pass
+
+        item['is_breached'] = item_leaked
+        item['breach_count'] = item_count
+        item['last_checked'] = now_iso
+
+        # Evaluate general vulnerability (short length, lack of complexity, or breached)
+        is_weak = len(pwd) < 10 or not re.search(r'[A-Z]', pwd) or not re.search(r'[0-9]', pwd) or not re.search(r'[^a-zA-Z0-9]', pwd)
+        if item_leaked:
+            breached_count += 1
+            vulnerable_count += 1
+            if not item.get('breach_detected_at'):
+                item['breach_detected_at'] = now_iso
+        elif is_weak:
+            vulnerable_count += 1
+
+    save_vault(vault, user_id)
+
+    # Record time-series snapshot for the breach analytics graph
+    history = load_breach_history(user_id)
+    history.append({
+        "timestamp": now_iso,
+        "time_formatted": datetime.now(timezone.utc).strftime("%H:%M:%S"),
+        "total_passwords": total_items,
+        "breached_count": breached_count,
+        "vulnerable_count": vulnerable_count
+    })
+    # Keep up to 100 timeline records
+    history = history[-100:]
+    save_breach_history(history, user_id)
+
+    return jsonify({
+        'status': 'success',
+        'vault': vault,
+        'summary': {
+            'total_passwords': total_items,
+            'breached_passwords': breached_count,
+            'vulnerable_passwords': vulnerable_count,
+            'timestamp': now_iso
+        },
+        'breach_history': history
+    })
+
+@app.route('/api/passwords/breach-history', methods=['GET'])
+def get_breach_history():
+    user = get_current_user()
+    user_id = user["id"] if user else "guest"
+    history = load_breach_history(user_id)
+    return jsonify({'status': 'success', 'history': history})
 
 
 # ---------------------------------------------------------------------------

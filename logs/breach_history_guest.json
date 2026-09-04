@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": "2026-09-04T00:46:42.766025+00:00",
+    "time_formatted": "00:46:42",
+    "total_passwords": 0,
+    "breached_count": 0,
+    "vulnerable_count": 0
+  },
+  {
+    "timestamp": "2026-09-04T00:47:04.621419+00:00",
+    "time_formatted": "00:47:04",
+    "total_passwords": 1,
+    "breached_count": 1,
+    "vulnerable_count": 1
+  }
+]
