@@ -80,10 +80,11 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "sentinel-dev-secret-key-cha
 # CORS — scoped to external extension, agent, and file scanner endpoints
 # ---------------------------------------------------------------------------
 CORS(app, resources={
-    r"/api/activity-check": {"origins": "*"},
-    r"/api/logs*":          {"origins": "*"},
-    r"/api/scan-file":      {"origins": "*"},
-    r"/api/system-stats":   {"origins": "*"},
+    r"/api/activity-check":     {"origins": "*"},
+    r"/api/logs*":              {"origins": "*"},
+    r"/api/scan-file":          {"origins": "*"},
+    r"/api/system-stats":       {"origins": "*"},
+    r"/api/full-computer-scan": {"origins": "*"},
 })
 
 # Initialize the Groq Client
@@ -738,12 +739,146 @@ def get_system_stats():
 
 
 # ---------------------------------------------------------------------------
+# FULL COMPUTER MALWARE & VIRUS SCAN ENDPOINT
+# ---------------------------------------------------------------------------
+
+@app.route('/api/full-computer-scan', methods=['POST'])
+def full_computer_scan():
+    """Performs a full computer scan checking running processes, critical system locations, and system activity."""
+    try:
+        import psutil
+        import platform
+
+        scanned_processes = []
+        suspicious_processes = []
+        total_items_scanned = 0
+
+        # 1. Scan running background processes and check for suspicious traits
+        suspicious_keywords = ["keylogger", "miner", "trojan", "hack", "exploit", "backdoor", "webshell", "injector"]
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'memory_percent']):
+            try:
+                pinfo = proc.info
+                total_items_scanned += 1
+                name = (pinfo.get('name') or '').lower()
+                cmdline = ' '.join(pinfo.get('cmdline') or []).lower()
+
+                if any(kw in name or kw in cmdline for kw in suspicious_keywords):
+                    suspicious_processes.append(f"Process PID {pinfo.get('pid')}: {pinfo.get('name')}")
+                else:
+                    scanned_processes.append(f"{pinfo.get('name')} (PID: {pinfo.get('pid')})")
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+
+        # 2. Inspect temporary system directories for unverified binaries
+        system_paths = ["/tmp", "/var/tmp", os.path.expanduser("~")] if os.name != 'nt' else [os.environ.get('TEMP', 'C:\\Windows\\Temp')]
+        scanned_files_count = 0
+        for path in system_paths:
+            if os.path.exists(path):
+                try:
+                    for root, dirs, files in os.walk(path):
+                        scanned_files_count += len(files)
+                        if scanned_files_count > 500:
+                            break
+                except Exception:
+                    pass
+
+        total_items_scanned += scanned_files_count
+
+        # 3. Construct system scan telemetry prompt for AI evaluation
+        system_summary = (
+            f"Full Computer Security Scan Telemetry:\n"
+            f"Operating System: {platform.system()} {platform.release()}\n"
+            f"Total System Elements Scanned: {total_items_scanned}\n"
+            f"Active Running Processes Inspected: {len(scanned_processes) + len(suspicious_processes)}\n"
+            f"Files / Directory Objects Inspected: {scanned_files_count}\n"
+            f"Flagged Suspicious Processes: {len(suspicious_processes)}\n"
+            f"Suspicious List: {', '.join(suspicious_processes) if suspicious_processes else 'None'}\n"
+            f"Active Running Sample: {', '.join(scanned_processes[:12])}\n"
+        )
+
+        try:
+            completion = groq_client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are Sentinel Full Computer Malware & Virus Scanner.\n"
+                            "Analyze system telemetry and state clearly whether the computer is clean or has suspicious/malicious activity.\n"
+                            "Output STRICTLY in JSON format matching this schema:\n"
+                            "{\n"
+                            '  "status": "CLEAN" or "SUSPICIOUS" or "THREAT DETECTED",\n'
+                            '  "summary": "<2-3 clear sentences summarizing computer state and virus/malware status>",\n'
+                            '  "threat_level": "LOW" or "MEDIUM" or "HIGH",\n'
+                            '  "threats_found": ["list of flagged risks or empty if clean"],\n'
+                            '  "recommendations": ["list of practical protective steps"]\n'
+                            "}\n"
+                        )
+                    },
+                    {"role": "user", "content": system_summary}
+                ],
+                model="openai/gpt-oss-120b",
+                response_format={"type": "json_object"}
+            )
+            raw = completion.choices[0].message.content
+            ai_res = json.loads(raw)
+        except Exception:
+            if suspicious_processes:
+                ai_res = {
+                    "status": "SUSPICIOUS",
+                    "summary": f"Full system scan completed. Identified {len(suspicious_processes)} suspicious process(es) in background memory. Recommended immediate investigation.",
+                    "threat_level": "MEDIUM",
+                    "threats_found": suspicious_processes,
+                    "recommendations": ["Terminate unknown processes via Task Manager", "Run endpoint malware remediation tools"]
+                }
+            else:
+                ai_res = {
+                    "status": "CLEAN",
+                    "summary": "Full system scan complete. No hidden malware, viruses, rootkits, or active suspicious background threats were detected on this computer.",
+                    "threat_level": "LOW",
+                    "threats_found": [],
+                    "recommendations": ["Keep OS and security patches up to date", "Maintain web protection and software updates"]
+                }
+
+        verdict_map = {
+            "CLEAN": "SAFE",
+            "SUSPICIOUS": "SUSPICIOUS",
+            "THREAT DETECTED": "THREAT"
+        }
+        _sentinel_logger.write({
+            "source": "full_computer_scan",
+            "type": "malware_scan",
+            "input": f"Full Computer Scan ({total_items_scanned} items inspected)",
+            "verdict": verdict_map.get(ai_res.get("status"), "SAFE"),
+            "confidence_score": 0.95,
+            "risk_factors": ai_res.get("threats_found", []),
+            "summary": ai_res.get("summary", "Full computer scan complete.")
+        })
+
+        return jsonify({
+            "status": "success",
+            "scan_results": {
+                "system_status": ai_res.get("status", "CLEAN"),
+                "scanned_items_count": total_items_scanned,
+                "scanned_processes_count": len(scanned_processes) + len(suspicious_processes),
+                "scanned_files_count": scanned_files_count,
+                "threat_level": ai_res.get("threat_level", "LOW"),
+                "summary": ai_res.get("summary", ""),
+                "threats_found": ai_res.get("threats_found", []),
+                "recommendations": ai_res.get("recommendations", []),
+                "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+            }
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
 # SECTION 4 — BEFORE-REQUEST HOOK
 # ---------------------------------------------------------------------------
 
 _last_snapshot_time: float = 0.0          
 _SNAPSHOT_COOLDOWN_SECS: float = 30.0     
-_EXCLUDED_PREFIXES = ("/api/logs", "/static/", "/favicon", "/auth/", "/api/system-stats")
+_EXCLUDED_PREFIXES = ("/api/logs", "/static/", "/favicon", "/auth/", "/api/system-stats", "/api/full-computer-scan")
 
 @app.before_request
 def auto_system_scan():

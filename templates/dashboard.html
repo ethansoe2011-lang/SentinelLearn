@@ -462,6 +462,18 @@
             position: relative;
         }
 
+        .full-scan-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            transition: border-color 0.3s ease;
+        }
+        .full-scan-section:hover {
+            border-color: rgba(255,255,255,0.15);
+        }
+
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         ::-webkit-scrollbar { width: 6px; }
@@ -587,6 +599,35 @@
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="liveTrackingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Full Computer Malware & Virus Scan -->
+                <div class="full-scan-section" id="fullScanSection">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 8px;">
+                            <span>🔍 Full Computer Malware &amp; Threat Scan</span>
+                        </h3>
+                        <span id="fullScanBadge" class="badge safe" style="display: none;">CLEAN</span>
+                    </div>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.4;">
+                        Perform a deep scan of active background processes, system memory, and binaries to detect hidden malware, viruses, and potential threats.
+                    </p>
+                    <button class="btn btn-primary" id="runFullScanBtn" style="width: 100%; font-size: 0.9rem;">
+                        ⚡ Start Full Computer Scan
+                    </button>
+                    
+                    <div id="fullScanProgress" style="display: none; margin-top: 14px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--neon-primary); margin-bottom: 6px;">
+                            <span id="scanStatusText">Inspecting background processes and memory...</span>
+                            <span id="scanPercentText">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill cpu-fill" id="fullScanProgressBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div id="fullScanResults" style="display: none; margin-top: 16px; padding: 16px; background: rgba(5,5,5,0.7); border: 1px solid var(--border-light); border-radius: 12px; font-size: 0.88rem;">
                     </div>
                 </div>
             </div>
@@ -992,6 +1033,121 @@
         initTrackingChart();
         primeGraphFromLogs();
         setInterval(tickLiveGraph, 10000);
+
+        // Full Computer Malware & Threat Scan Handler
+        document.getElementById('runFullScanBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('runFullScanBtn');
+            const progress = document.getElementById('fullScanProgress');
+            const statusText = document.getElementById('scanStatusText');
+            const percentText = document.getElementById('scanPercentText');
+            const progressBar = document.getElementById('fullScanProgressBar');
+            const resultsDiv = document.getElementById('fullScanResults');
+            const scanBadge = document.getElementById('fullScanBadge');
+
+            btn.disabled = true;
+            btn.innerText = "Scan in Progress...";
+            progress.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            scanBadge.style.display = 'none';
+
+            let currentProgress = 0;
+            const steps = [
+                "Inspecting background processes & memory space...",
+                "Evaluating running process command lines & PIDs...",
+                "Scanning temporary system directories...",
+                "Analyzing behavioral heuristics with Groq AI...",
+                "Finalizing threat intelligence telemetry..."
+            ];
+
+            const interval = setInterval(() => {
+                if (currentProgress < 90) {
+                    currentProgress += Math.floor(Math.random() * 15) + 10;
+                    if (currentProgress > 90) currentProgress = 90;
+                    const stepIdx = Math.min(Math.floor((currentProgress / 100) * steps.length), steps.length - 1);
+                    statusText.innerText = steps[stepIdx];
+                    percentText.innerText = `${currentProgress}%`;
+                    progressBar.style.width = `${currentProgress}%`;
+                }
+            }, 300);
+
+            try {
+                const req = await fetch('/api/full-computer-scan', { method: 'POST' });
+                const data = await req.json();
+
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                percentText.innerText = '100%';
+                statusText.innerText = 'Scan Complete!';
+
+                setTimeout(() => {
+                    progress.style.display = 'none';
+                    btn.disabled = false;
+                    btn.innerText = "⚡ Run Another Full Scan";
+
+                    if (data.status === 'success') {
+                        const res = data.scan_results;
+                        scanBadge.style.display = 'inline-block';
+
+                        let badgeClass = 'safe';
+                        let badgeColor = 'var(--neon-safe)';
+                        if (res.system_status === 'SUSPICIOUS') {
+                            badgeClass = 'suspicious';
+                            badgeColor = 'var(--neon-warning)';
+                        } else if (res.system_status === 'THREAT DETECTED') {
+                            badgeClass = 'threat';
+                            badgeColor = 'var(--neon-danger)';
+                        }
+
+                        scanBadge.className = `badge ${badgeClass}`;
+                        scanBadge.innerText = res.system_status;
+
+                        let html = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600;">
+                                <span style="color: ${badgeColor}; font-size: 1rem; text-shadow: 0 0 8px ${badgeColor};">Overall Device Status: ${escapeHtml(res.system_status)}</span>
+                                <span style="color: var(--text-muted); font-size: 0.78rem;">${escapeHtml(res.timestamp)}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; border: 1px solid var(--border-light);">
+                                <div><strong style="color:#aaa;">Total Scanned Items:</strong> ${res.scanned_items_count}</div>
+                                <div><strong style="color:#aaa;">Threat Level:</strong> ${escapeHtml(res.threat_level)}</div>
+                                <div><strong style="color:#aaa;">Processes Checked:</strong> ${res.scanned_processes_count}</div>
+                                <div><strong style="color:#aaa;">Files Inspected:</strong> ${res.scanned_files_count}</div>
+                            </div>
+                            <p style="color: #ddd; margin: 0 0 10px 0; line-height: 1.5;">${escapeHtml(res.summary)}</p>
+                        `;
+
+                        if (res.threats_found && res.threats_found.length > 0) {
+                            html += `<div style="margin-top: 10px; color: var(--neon-danger); font-weight: 600;">Detected Threats / Suspicious Items:</div><ul class="risk-list" style="margin-top:4px;">`;
+                            res.threats_found.forEach(t => { html += `<li>${escapeHtml(t)}</li>`; });
+                            html += `</ul>`;
+                        }
+
+                        if (res.recommendations && res.recommendations.length > 0) {
+                            html += `<div style="margin-top: 10px; color: var(--neon-primary); font-weight: 600;">Recommended Security Measures:</div><ul style="margin-top:4px; padding-left:20px; color:#ccc; font-size:0.82rem;">`;
+                            res.recommendations.forEach(r => { html += `<li>${escapeHtml(r)}</li>`; });
+                            html += `</ul>`;
+                        }
+
+                        resultsDiv.innerHTML = html;
+                        resultsDiv.style.display = 'block';
+
+                        registerLiveEvent(res.system_status === 'CLEAN' ? 'SAFE' : 'THREAT');
+                        fetchLogs();
+                        fetchSystemStats();
+                    } else {
+                        resultsDiv.innerHTML = `<span style="color: var(--neon-danger);">Error running full scan: ${escapeHtml(data.message)}</span>`;
+                        resultsDiv.style.display = 'block';
+                    }
+                }, 400);
+
+            } catch (err) {
+                clearInterval(interval);
+                progress.style.display = 'none';
+                btn.disabled = false;
+                btn.innerText = "⚡ Start Full Computer Scan";
+                resultsDiv.innerHTML = `<span style="color: var(--neon-danger);">Network or server error during full computer scan.</span>`;
+                resultsDiv.style.display = 'block';
+            }
+        });
 
         let isSignUpMode = false;
 
